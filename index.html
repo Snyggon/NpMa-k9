@@ -2,7 +2,7 @@
 <html lang="sv">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>NP Matte Quest - Nationella provet Åk 9</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
@@ -842,8 +842,8 @@ body::before {
 @media (max-width:480px) {
   /* Hide sidebar, reclaim full width */
   .sidebar { display:none; }
-  .topbar { left:0;height:48px;padding:0 12px;gap:8px; }
-  .main { margin-left:0;padding:12px;padding-top:60px; }
+  .topbar { left:0;height:48px;padding:0 12px;gap:8px;top:env(safe-area-inset-top,0); }
+  .main { margin-left:0;padding:12px;padding-top:calc(60px + env(safe-area-inset-top,0)); }
   .xp-display,.level-badge { padding:4px 10px;font-size:.7rem; }
 
   /* Dashboard */
@@ -904,6 +904,7 @@ body::before {
   justify-content:space-around;
   align-items:center;
   padding:0 8px;
+  padding-bottom:env(safe-area-inset-bottom,0);
 }
 .mobile-nav button {
   background:none;border:none;color:var(--text-dim);
