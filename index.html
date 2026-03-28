@@ -2193,7 +2193,14 @@ function floatXp(x,y,text){
 function openVideo(videoId){
   const overlay = document.getElementById('videoOverlay');
   const iframe = document.getElementById('videoIframe');
-  iframe.src = 'https://www.youtube-nocookie.com/embed/'+videoId+'?autoplay=1&rel=0';
+  // Handle &t=123 timestamps — convert to ?start=123 for embed
+  let embedId = videoId, extra = '';
+  if(videoId.includes('&t=')){
+    const parts = videoId.split('&t=');
+    embedId = parts[0];
+    extra = '&start='+parts[1];
+  }
+  iframe.src = 'https://www.youtube-nocookie.com/embed/'+embedId+'?autoplay=1&rel=0'+extra;
   document.getElementById('videoFallbackLink').href = 'https://www.youtube.com/watch?v='+videoId;
   overlay.classList.add('active');
   document.body.style.overflow='hidden';
