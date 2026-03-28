@@ -1,0 +1,3129 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NP Matte Quest - Nationella provet Åk 9</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+<style>
+/* ============================================================
+   NP MATTE QUEST — Gamified Study App for Nationella Provet Åk 9
+   Dark theme, game-like UI, neon accents
+   ============================================================ */
+
+/* --- RESET & VARIABLES --- */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  /* Dark space theme */
+  --bg: #0f0f1a;
+  --bg-card: #1a1a2e;
+  --bg-card-hover: #22223a;
+  --bg-surface: #16162a;
+  --bg-input: #12121f;
+
+  /* Neon accents */
+  --neon-blue: #00d4ff;
+  --neon-purple: #a855f7;
+  --neon-pink: #f472b6;
+  --neon-green: #22c55e;
+  --neon-yellow: #facc15;
+  --neon-orange: #fb923c;
+  --neon-gold: #ffd700;
+  --neon-red: #ef4444;
+
+  /* Grade colors */
+  --grade-e: #22c55e;
+  --grade-e-bg: rgba(34,197,94,.12);
+  --grade-e-glow: 0 0 20px rgba(34,197,94,.3);
+  --grade-c: #facc15;
+  --grade-c-bg: rgba(250,204,21,.12);
+  --grade-c-glow: 0 0 20px rgba(250,204,21,.3);
+  --grade-a: #a855f7;
+  --grade-a-bg: rgba(168,85,247,.12);
+  --grade-a-glow: 0 0 20px rgba(168,85,247,.3);
+
+  /* Text */
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --text-bright: #f8fafc;
+
+  /* UI */
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-lg: 16px;
+  --shadow: 0 4px 24px rgba(0,0,0,.4);
+  --shadow-glow: 0 0 30px rgba(0,212,255,.15);
+  --transition: all .25s cubic-bezier(.4,0,.2,1);
+
+  /* Sizing */
+  --sidebar-w: 72px;
+  --topbar-h: 60px;
+}
+
+html { scroll-behavior:smooth; font-size:16px; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Animated gradient bg */
+body::before {
+  content:'';
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background: radial-gradient(ellipse at 20% 50%, rgba(168,85,247,.06) 0%, transparent 50%),
+              radial-gradient(ellipse at 80% 20%, rgba(0,212,255,.06) 0%, transparent 50%),
+              radial-gradient(ellipse at 50% 90%, rgba(244,114,182,.04) 0%, transparent 50%);
+  pointer-events:none;
+  z-index:0;
+}
+
+/* --- ICON SIDEBAR (left rail) --- */
+.sidebar {
+  position: fixed; left: 0; top: 0; bottom: 0;
+  width: var(--sidebar-w);
+  background: var(--bg-surface);
+  border-right: 1px solid rgba(255,255,255,.06);
+  display: flex; flex-direction: column; align-items: center;
+  padding: 16px 0;
+  z-index: 200;
+  gap: 4px;
+}
+.sidebar-logo {
+  width:44px; height:44px; border-radius:12px;
+  background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+  display:flex; align-items:center; justify-content:center;
+  font-weight:900; font-size:16px; color:#fff;
+  margin-bottom:20px; cursor:pointer;
+  box-shadow: 0 0 20px rgba(0,212,255,.3);
+  transition: var(--transition);
+}
+.sidebar-logo:hover { transform:scale(1.1); box-shadow: 0 0 30px rgba(0,212,255,.5); }
+.sidebar-btn {
+  width:44px; height:44px; border-radius:12px; border:none;
+  background:transparent; color:var(--text-dim);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:var(--transition);
+  font-size:20px; position:relative;
+}
+.sidebar-btn:hover { background:rgba(255,255,255,.06); color:var(--text-bright); }
+.sidebar-btn.active { background:rgba(0,212,255,.12); color:var(--neon-blue); }
+.sidebar-btn.active::before {
+  content:''; position:absolute; left:-1px; top:8px; bottom:8px;
+  width:3px; border-radius:0 3px 3px 0;
+  background:var(--neon-blue);
+}
+.sidebar-btn .tooltip {
+  position:absolute; left:56px; top:50%; transform:translateY(-50%);
+  background:var(--bg-card); color:var(--text-bright);
+  padding:6px 12px; border-radius:var(--radius-sm);
+  font-size:.75rem; white-space:nowrap;
+  pointer-events:none; opacity:0; transition:opacity .2s;
+  box-shadow:var(--shadow);
+  border:1px solid rgba(255,255,255,.08);
+}
+.sidebar-btn:hover .tooltip { opacity:1; }
+.sidebar-spacer { flex:1; }
+.sidebar-streak {
+  display:flex; flex-direction:column; align-items:center; gap:2px;
+  padding:8px 0; cursor:pointer;
+}
+.sidebar-streak .streak-flame { font-size:22px; filter:drop-shadow(0 0 6px rgba(251,146,60,.5)); }
+.sidebar-streak .streak-num { font-size:.7rem; font-weight:700; color:var(--neon-orange); }
+
+/* --- TOPBAR --- */
+.topbar {
+  position:fixed; top:0; left:var(--sidebar-w); right:0;
+  height:var(--topbar-h);
+  background:rgba(15,15,26,.85);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(255,255,255,.06);
+  display:flex; align-items:center; padding:0 24px;
+  z-index:150; gap:16px;
+}
+.topbar-title {
+  font-size:1rem; font-weight:700; color:var(--text-bright);
+}
+.topbar-spacer { flex:1; }
+.xp-display {
+  display:flex; align-items:center; gap:8px;
+  background:rgba(168,85,247,.1);
+  border:1px solid rgba(168,85,247,.2);
+  padding:6px 14px; border-radius:20px;
+  font-size:.8rem; font-weight:600; color:var(--neon-purple);
+}
+.xp-display .xp-icon { font-size:14px; }
+.level-badge {
+  display:flex; align-items:center; gap:6px;
+  background:rgba(0,212,255,.1);
+  border:1px solid rgba(0,212,255,.2);
+  padding:6px 14px; border-radius:20px;
+  font-size:.8rem; font-weight:600; color:var(--neon-blue);
+}
+.topbar-countdown {
+  font-size:.8rem; color:var(--text-dim);
+}
+.topbar-countdown strong { color:var(--neon-yellow); }
+
+/* --- MAIN CONTENT --- */
+.main {
+  margin-left: var(--sidebar-w);
+  margin-top: var(--topbar-h);
+  padding: 24px;
+  min-height: calc(100vh - var(--topbar-h));
+  position:relative; z-index:1;
+}
+
+/* --- CARDS --- */
+.card {
+  background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  transition: var(--transition);
+}
+.card:hover {
+  border-color: rgba(255,255,255,.1);
+  box-shadow: var(--shadow);
+}
+.card-title {
+  font-size:1.1rem; font-weight:700; color:var(--text-bright);
+  margin-bottom:16px;
+}
+
+/* --- GAME MAP (level select) --- */
+.game-map {
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap:20px;
+  max-width:1200px;
+  margin:0 auto;
+}
+
+.level-node {
+  background: rgba(26,26,46,.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 2px solid rgba(255,255,255,.08);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+.level-node::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0;
+  height:4px;
+  background: linear-gradient(90deg, var(--grade-e), var(--grade-c), var(--grade-a));
+  opacity:.5;
+  transition: opacity .3s;
+}
+.level-node:hover {
+  transform: translateY(-4px);
+  border-color: var(--neon-blue);
+  box-shadow: 0 8px 32px rgba(0,212,255,.15);
+}
+.level-node:hover::before { opacity:1; }
+
+.level-header {
+  display:flex; align-items:center; gap:12px; margin-bottom:14px;
+}
+.level-number {
+  width:40px; height:40px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:1rem; color:#fff;
+  background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+  box-shadow: 0 0 15px rgba(0,212,255,.25);
+  flex-shrink:0;
+}
+.level-node.completed .level-number {
+  background: linear-gradient(135deg, var(--neon-green), #16a34a);
+  box-shadow: 0 0 15px rgba(34,197,94,.3);
+}
+/* Achievement tinting on chapter cards */
+.level-node.grade-e {
+  background: rgba(34,197,94,.08);
+  border-color: rgba(34,197,94,.2);
+}
+.level-node.grade-e::before {
+  background: linear-gradient(90deg, var(--neon-green), var(--neon-green));
+  opacity:.7;
+}
+.level-node.grade-c {
+  background: rgba(250,204,21,.08);
+  border-color: rgba(250,204,21,.2);
+}
+.level-node.grade-c::before {
+  background: linear-gradient(90deg, var(--grade-c), var(--grade-c));
+  opacity:.7;
+}
+.level-node.grade-a {
+  background: rgba(168,85,247,.14);
+  border-color: rgba(168,85,247,.45);
+  box-shadow: 0 0 18px rgba(168,85,247,.25), 0 0 40px rgba(168,85,247,.1);
+}
+.level-node.grade-a::before {
+  background: linear-gradient(90deg, var(--neon-purple), var(--neon-purple));
+  opacity:1;
+}
+.level-title {
+  font-size:.95rem; font-weight:700; color:var(--text-bright);
+  line-height:1.3;
+}
+.level-subtitle {
+  font-size:.75rem; color:var(--text-dim); margin-top:2px;
+}
+
+/* Provvikt bar */
+.level-weight {
+  display:flex; align-items:center; gap:8px; margin-bottom:12px;
+  font-size:.72rem; color:var(--text-dim);
+}
+.level-weight-bar {
+  flex:1; height:4px; border-radius:2px;
+  background:rgba(255,255,255,.06);
+  overflow:hidden;
+}
+.level-weight-fill {
+  height:100%; border-radius:2px;
+  background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+  transition: width .5s ease;
+}
+
+/* Stage pills (E/C/A) */
+.level-stages {
+  display:flex; gap:6px; margin-bottom:14px;
+}
+.stage-pill {
+  flex:1; padding:6px 0; border-radius:var(--radius-sm);
+  text-align:center; font-size:.7rem; font-weight:700;
+  border:1px solid;
+  transition:var(--transition);
+}
+.stage-pill.stage-e { color:var(--grade-e); border-color:rgba(34,197,94,.3); background:var(--grade-e-bg); }
+.stage-pill.stage-c { color:var(--grade-c); border-color:rgba(250,204,21,.3); background:var(--grade-c-bg); }
+.stage-pill.stage-a { color:var(--grade-a); border-color:rgba(168,85,247,.3); background:var(--grade-a-bg); }
+.stage-pill.locked { opacity:.35; }
+.stage-pill.complete { position:relative; }
+.stage-pill.complete::after { content:' ✓'; }
+
+/* Progress ring */
+.level-progress {
+  display:flex; align-items:center; gap:10px;
+}
+.progress-ring-wrap {
+  width:38px; height:38px; position:relative;
+}
+.progress-ring-wrap svg { transform:rotate(-90deg); }
+.progress-ring-bg { stroke:rgba(255,255,255,.06); fill:none; stroke-width:4; }
+.progress-ring-fill { fill:none; stroke-width:4; stroke-linecap:round; transition:stroke-dashoffset .6s ease; }
+.progress-ring-text {
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-size:.65rem; font-weight:700; color:var(--text-bright);
+}
+.level-progress-info {
+  font-size:.75rem; color:var(--text-dim);
+}
+.level-progress-info strong { color:var(--text-bright); }
+
+/* Stars */
+.level-stars {
+  display:flex; gap:3px; margin-top:10px;
+}
+.level-star { font-size:16px; opacity:.2; transition:var(--transition); }
+.level-star.earned { opacity:1; filter:drop-shadow(0 0 4px rgba(250,204,21,.5)); }
+
+/* --- CHAPTER VIEW --- */
+.chapter-view {
+  max-width:900px;
+  margin:0 auto;
+}
+.chapter-hero {
+  background: rgba(26,26,46,.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:var(--radius-lg);
+  padding:28px;
+  margin-bottom:24px;
+  position:relative;
+  overflow:hidden;
+}
+.chapter-hero::before {
+  content:'';position:absolute;top:0;left:0;right:0;height:4px;
+  background:linear-gradient(90deg, var(--grade-e), var(--grade-c), var(--grade-a));
+}
+.chapter-hero-top {
+  display:flex;align-items:center;gap:16px;margin-bottom:16px;
+}
+.chapter-back {
+  width:36px;height:36px;border-radius:10px;border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.04);color:var(--text-dim);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:var(--transition);font-size:18px;
+}
+.chapter-back:hover { background:rgba(255,255,255,.08);color:var(--text-bright); }
+.chapter-hero h2 { font-size:1.4rem;color:var(--text-bright);font-weight:800; }
+.chapter-hero-sub { font-size:.85rem;color:var(--text-dim);margin-top:4px; }
+
+/* Stage stages tabs */
+.stage-tabs {
+  display:flex;gap:8px;margin-bottom:24px;
+}
+.stage-tab {
+  flex:1;padding:14px;border-radius:var(--radius);cursor:pointer;
+  text-align:center;border:2px solid transparent;
+  transition:var(--transition);background:var(--bg-card);
+}
+.stage-tab:hover { background:var(--bg-card-hover); }
+.stage-tab.active-e { border-color:var(--grade-e);background:var(--grade-e-bg); }
+.stage-tab.active-c { border-color:var(--grade-c);background:var(--grade-c-bg); }
+.stage-tab.active-a { border-color:var(--grade-a);background:var(--grade-a-bg); }
+.stage-tab.locked-tab { opacity:.4;cursor:not-allowed; }
+.stage-tab-level {
+  font-size:1.2rem;font-weight:800;margin-bottom:4px;
+}
+.stage-tab-label { font-size:.7rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px; }
+.stage-tab-count { font-size:.75rem;color:var(--text-dim);margin-top:4px; }
+
+
+/* Problem cards */
+.problem-card {
+  background:var(--bg-surface);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:var(--radius);
+  padding:20px;
+  margin-bottom:14px;
+  transition:var(--transition);
+  position:relative;
+}
+.problem-card.solved {
+  border-color:rgba(34,197,94,.25);
+  background:rgba(34,197,94,.04);
+}
+.problem-card.solved .problem-xp {
+  color:var(--neon-green);
+}
+.problem-header {
+  display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:nowrap;
+}
+.problem-level {
+  padding:3px 10px;border-radius:6px;font-size:.7rem;font-weight:700;flex-shrink:0;
+}
+.problem-level.level-e { color:var(--grade-e);background:var(--grade-e-bg); }
+.problem-level.level-c { color:var(--grade-c);background:var(--grade-c-bg); }
+.problem-level.level-a { color:var(--grade-a);background:var(--grade-a-bg); }
+.problem-num { font-size:.8rem;color:var(--text-dim);white-space:nowrap;flex-shrink:0; }
+.problem-xp { font-size:.65rem;color:var(--neon-purple);white-space:nowrap;flex-shrink:0;margin-left:8px; }
+.problem-xp.ml-auto { margin-left:auto; }
+.problem-text {
+  font-size:.92rem;line-height:1.7;color:var(--text);margin-bottom:14px;
+  overflow-wrap:break-word;word-wrap:break-word;
+}
+
+.problem-actions {
+  display:flex;gap:8px;flex-wrap:wrap;
+}
+.btn {
+  padding:8px 18px;border-radius:var(--radius-sm);border:none;
+  font-size:.8rem;font-weight:600;cursor:pointer;
+  transition:var(--transition);display:inline-flex;align-items:center;gap:6px;
+}
+.btn-solution {
+  background:rgba(255,255,255,.06);color:var(--text-dim);border:1px solid rgba(255,255,255,.1);
+}
+.btn-solution:hover { background:rgba(255,255,255,.1);color:var(--text-bright); }
+.btn-done {
+  background:var(--grade-e);color:#fff;border:1px solid rgba(34,197,94,.4);
+  pointer-events:none;
+}
+.btn-sure {
+  background:rgba(250,204,21,.12);color:var(--neon-yellow);border:1px solid rgba(250,204,21,.3);
+  animation:surePulse 2.5s ease infinite;
+}
+.btn-sure:hover { background:rgba(250,204,21,.22);box-shadow:0 0 14px rgba(250,204,21,.25); }
+@keyframes surePulse {
+  0%,100% { box-shadow:0 0 0 rgba(250,204,21,0); }
+  50% { box-shadow:0 0 8px rgba(250,204,21,.2); }
+}
+.btn-undo {
+  background:rgba(239,68,68,.1);color:var(--neon-red);border:1px solid rgba(239,68,68,.2);
+}
+.btn-undo:hover { background:rgba(239,68,68,.2); }
+
+.solution-box {
+  margin-top:14px;padding:16px;
+  background:rgba(0,212,255,.04);
+  border:1px solid rgba(0,212,255,.1);
+  border-radius:var(--radius-sm);
+  display:none;
+}
+.solution-box.show { display:block; animation:fadeSlideIn .3s ease; }
+
+.solution-step {
+  margin-bottom:8px;font-size:.88rem;line-height:1.7;color:var(--text);
+}
+
+/* Variant swipe system */
+/* variant dots removed — replaced by inline nav arrows */
+.variant-swipe { overflow:hidden;position:relative; }
+.variant-track { display:flex;transition:transform .25s ease;will-change:transform; }
+.variant-slide { min-width:100%;flex-shrink:0;max-width:100%;overflow:hidden; }
+.variant-nav-inline { display:inline-flex;align-items:center;gap:3px;margin-left:auto;flex-shrink:0; }
+.variant-nav-inline button { background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);border-radius:6px;width:28px;height:28px;cursor:pointer;color:var(--neon-blue);font-size:.85rem;font-weight:700;display:flex;align-items:center;justify-content:center;transition:var(--transition);padding:0;line-height:1; }
+.variant-nav-inline button:hover { background:rgba(59,130,246,.25);border-color:rgba(59,130,246,.5); }
+.variant-nav-inline button:disabled { opacity:.25;cursor:default;pointer-events:none; }
+.variant-nav-inline .vn-count { font-size:.7rem;color:var(--text-dim);min-width:28px;text-align:center;white-space:nowrap; }
+
+/* Video button on problem card */
+.problem-video-btn { display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.95);border:1px solid rgba(239,68,68,.5);border-radius:6px;padding:2px 8px;cursor:pointer;color:#cc0000;font-size:.6rem;font-weight:600;white-space:nowrap;flex-shrink:0;transition:var(--transition);letter-spacing:.02em; }
+.problem-video-btn:hover { background:#fff;border-color:#cc0000;box-shadow:0 0 8px rgba(239,68,68,.3); }
+.problem-video-btn svg { width:12px;height:12px;fill:#cc0000; }
+
+/* Calculator tag */
+.calc-tag { font-size:.6rem;font-weight:600;padding:2px 8px;border-radius:8px;white-space:nowrap;flex-shrink:0;letter-spacing:.02em; }
+.calc-tag.utan { color:rgba(248,113,113,1);background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.18); }
+.calc-tag.med { color:rgba(74,222,128,1);background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.18); }
+@media(max-width:480px){ .calc-tag .calc-full { display:none; } }
+@media(min-width:481px){ .calc-tag .calc-short { display:none; } }
+
+/* Theory section */
+.theory-section {
+  background:var(--bg-surface);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:var(--radius);
+  padding:24px;margin-bottom:24px;
+}
+.theory-section h3 { color:var(--neon-blue);font-size:1.1rem;margin-bottom:12px; }
+.theory-section h4 { color:var(--text-bright);font-size:.95rem;margin:16px 0 8px; }
+.theory-section p { font-size:.88rem;color:var(--text);line-height:1.7;margin-bottom:8px; }
+.formula-box {
+  background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.1);
+  border-radius:var(--radius-sm);padding:14px;margin:10px 0;
+}
+.formula-box p { margin-bottom:4px; }
+
+/* --- DASHBOARD (home) --- */
+.dash-grid {
+  display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;
+  max-width:1200px; margin:0 auto 24px;
+}
+.stat-card {
+  background:linear-gradient(145deg, #1e1e36, #1a1a2e);border:1px solid rgba(255,255,255,.1);
+  border-radius:var(--radius-lg);padding:20px;text-align:center;
+  box-shadow:0 2px 12px rgba(0,0,0,.35);
+}
+.stat-value { font-size:2rem;font-weight:800;color:var(--text-bright); }
+.stat-label { font-size:.75rem;color:var(--text-dim);margin-top:4px; }
+
+/* Grade meters */
+.grade-meters {
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;
+  max-width:1200px;margin:0 auto 24px;
+}
+.grade-meter {
+  background:linear-gradient(145deg, #1e1e36, #1a1a2e);border:1px solid rgba(255,255,255,.1);
+  border-radius:var(--radius-lg);padding:20px;position:relative;
+  overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.35);
+}
+.grade-meter-header {
+  display:flex;align-items:center;gap:10px;margin-bottom:14px;
+}
+.grade-letter {
+  width:36px;height:36px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:1rem;color:#fff;
+}
+.grade-letter.gl-e { background:var(--grade-e); }
+.grade-letter.gl-c { background:var(--grade-c);color:#000; }
+.grade-letter.gl-a { background:var(--grade-a); }
+.grade-meter-title { font-size:.85rem;font-weight:600;color:var(--text-bright); }
+.grade-meter-sub { font-size:.72rem;color:var(--text-dim); }
+
+.grade-bar {
+  width:100%;height:10px;border-radius:5px;
+  background:rgba(255,255,255,.06);overflow:hidden;margin-bottom:8px;
+}
+.grade-bar-fill {
+  height:100%;border-radius:5px;transition:width .8s cubic-bezier(.4,0,.2,1);
+  position:relative;overflow:hidden;
+}
+/* Animated shine on progress bars */
+.grade-bar-fill::after {
+  content:'';position:absolute;top:0;left:-60%;
+  width:40%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);
+  animation:barShine 3s ease-in-out infinite;
+}
+@keyframes barShine {
+  0%,75%,100% { left:-60%; }
+  35% { left:120%; }
+}
+.grade-bar-fill.fill-e { background:linear-gradient(90deg,#16a34a,var(--grade-e)); }
+.grade-bar-fill.fill-c { background:linear-gradient(90deg,#ca8a04,var(--grade-c)); }
+.grade-bar-fill.fill-a { background:linear-gradient(90deg,#7c3aed,var(--grade-a)); }
+
+.grade-pct {
+  font-size:.75rem;color:var(--text-dim);
+}
+.grade-pct strong { color:var(--text-bright); }
+
+.grade-tip {
+  margin-top:10px;padding:8px 12px;border-radius:var(--radius-sm);
+  font-size:.72rem;line-height:1.5;
+}
+.grade-tip.tip-e { background:var(--grade-e-bg);color:var(--grade-e); }
+.grade-tip.tip-c { background:var(--grade-c-bg);color:var(--grade-c); }
+.grade-tip.tip-a { background:var(--grade-a-bg);color:var(--grade-a); }
+
+/* --- STREAK MODAL --- */
+.streak-modal {
+  position:fixed;inset:0;background:rgba(0,0,0,.7);
+  display:flex;align-items:center;justify-content:center;
+  z-index:500;opacity:0;pointer-events:none;transition:opacity .3s;
+}
+.streak-modal.active { opacity:1;pointer-events:auto; }
+.streak-content {
+  background:var(--bg-card);border:1px solid rgba(255,255,255,.08);
+  border-radius:var(--radius-lg);padding:32px;text-align:center;
+  max-width:360px;width:90%;
+  transform:scale(.9);transition:transform .3s;
+}
+.streak-modal.active .streak-content { transform:scale(1); }
+.streak-big-flame { font-size:64px;margin-bottom:12px;animation:flamePulse 1.5s ease infinite; }
+.streak-big-num { font-size:3rem;font-weight:900;color:var(--neon-orange);margin-bottom:4px; }
+.streak-big-label { font-size:.9rem;color:var(--text-dim);margin-bottom:16px; }
+.streak-close {
+  padding:10px 28px;border-radius:var(--radius-sm);border:none;
+  background:var(--neon-orange);color:#fff;font-weight:700;cursor:pointer;
+  transition:var(--transition);
+}
+.streak-close:hover { box-shadow:0 0 20px rgba(251,146,60,.4); }
+
+/* --- XP POPUP --- */
+.xp-popup {
+  position:fixed;top:80px;right:24px;
+  background:var(--bg-card);border:1px solid rgba(168,85,247,.3);
+  border-radius:var(--radius);padding:14px 20px;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);
+  z-index:300;opacity:0;transform:translateY(-10px) scale(.95);
+  transition:all .3s ease;pointer-events:none;
+  display:flex;align-items:center;gap:10px;
+}
+.xp-popup.show { opacity:1;transform:translateY(0) scale(1); }
+.xp-popup-icon { font-size:24px; }
+.xp-popup-text { font-size:.85rem;font-weight:700;color:var(--neon-purple); }
+.xp-popup-bonus { font-size:.7rem;color:var(--neon-yellow);margin-top:2px; }
+
+/* --- VIDEO MODAL --- */
+.video-modal-overlay {
+  position:fixed;inset:0;background:rgba(0,0,0,.85);
+  z-index:400;display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .3s;
+}
+.video-modal-overlay.active { opacity:1;pointer-events:auto; }
+.video-modal {
+  width:90%;max-width:800px;aspect-ratio:16/9;
+  position:relative;border-radius:var(--radius-lg);overflow:hidden;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);
+}
+.video-modal iframe { width:100%;height:100%;border:none; }
+.video-modal-close {
+  position:absolute;top:-40px;right:0;
+  background:none;border:none;color:#fff;
+  font-size:28px;cursor:pointer;opacity:.7;transition:opacity .2s;
+}
+.video-modal-close:hover { opacity:1; }
+
+/* --- PROGRESS PAGE --- */
+.progress-grid {
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;
+  max-width:1200px;margin:0 auto;
+}
+.progress-card {
+  background:var(--bg-card);border:1px solid rgba(255,255,255,.06);
+  border-radius:var(--radius);padding:16px;
+}
+.progress-card-title {
+  font-size:.85rem;font-weight:700;color:var(--text-bright);margin-bottom:10px;
+}
+.progress-stages {
+  display:flex;gap:4px;margin-bottom:8px;
+}
+.progress-stage-dot {
+  width:8px;height:8px;border-radius:50%;
+}
+.progress-stage-dot.dot-e { background:var(--grade-e); }
+.progress-stage-dot.dot-c { background:var(--grade-c); }
+.progress-stage-dot.dot-a { background:var(--grade-a); }
+.progress-stage-dot.dot-empty { background:rgba(255,255,255,.1); }
+
+/* --- STATS PAGE --- */
+.stats-chart {
+  display:flex;align-items:flex-end;gap:12px;
+  height:220px;padding:20px 0;max-width:1000px;margin:0 auto;
+}
+.stats-bar-group {
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;
+  min-width:0;
+}
+.stats-bar-stack {
+  width:100%;max-width:50px;display:flex;flex-direction:column;gap:2px;
+  height:180px;justify-content:flex-end;
+}
+.stats-bar {
+  border-radius:3px 3px 0 0;
+  transition:height .6s cubic-bezier(.4,0,.2,1);
+  min-height:0;
+}
+.stats-bar.bar-e { background:var(--grade-e); }
+.stats-bar.bar-c { background:var(--grade-c); }
+.stats-bar.bar-a { background:var(--grade-a); }
+.stats-bar-label {
+  font-size:.55rem;color:var(--text-dim);text-align:center;
+  line-height:1.2;max-width:70px;word-wrap:break-word;
+}
+.stats-rows { display:flex;flex-direction:column;gap:10px; }
+.stats-row {
+  padding:10px 12px;border-radius:var(--radius-sm);cursor:pointer;
+  background:var(--bg-surface);border:1px solid rgba(255,255,255,.04);
+  transition:var(--transition);
+}
+.stats-row:hover { border-color:var(--neon-blue);background:rgba(59,130,246,.04);transform:translateX(3px); }
+.stats-row-head { display:flex;justify-content:space-between;align-items:center;margin-bottom:6px; }
+.stats-row-name { font-size:.8rem;font-weight:600;color:var(--text-bright); }
+.stats-row-pts { font-size:.7rem;color:var(--text-dim); }
+.stats-row-bars { display:flex;flex-direction:column;gap:3px; }
+.stats-exam-bar {
+  height:14px;display:flex;border-radius:6px;overflow:hidden;
+  opacity:.7;
+}
+.stats-exam-e { background:var(--grade-e);height:100%; }
+.stats-exam-c { background:var(--grade-c);height:100%; }
+.stats-exam-a { background:var(--grade-a);height:100%; }
+.stats-prog-wrap {
+  height:6px;border-radius:3px;overflow:visible;
+  background:rgba(255,255,255,.04);
+  position:relative;
+}
+.stats-prog-fill {
+  height:100%;border-radius:3px;position:relative;
+  background:linear-gradient(90deg,var(--neon-blue),var(--neon-purple));
+  box-shadow:0 0 10px rgba(59,130,246,.4);
+  transition:width .6s cubic-bezier(.4,0,.2,1);
+}
+.stats-prog-done {
+  background:linear-gradient(90deg,var(--neon-green),#4ade80) !important;
+  box-shadow:0 0 14px rgba(34,197,94,.5) !important;
+}
+.stats-prog-marker {
+  position:absolute;right:-2px;top:-3px;
+  width:4px;height:12px;border-radius:2px;
+  background:var(--neon-red);
+  box-shadow:0 0 8px var(--neon-red);
+}
+
+/* --- EXAM INFO PAGE --- */
+.exam-parts {
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0;
+}
+.exam-part {
+  background:var(--bg-surface);border:1px solid rgba(255,255,255,.06);
+  border-radius:var(--radius);padding:18px;
+  border-left:3px solid var(--neon-blue);
+}
+.exam-part h4 { color:var(--text-bright);font-size:.9rem;margin-bottom:8px; }
+.exam-part ul { list-style:none;padding:0; }
+.exam-part li {
+  font-size:.82rem;color:var(--text);padding:4px 0;
+  padding-left:16px;position:relative;
+}
+.exam-part li::before {
+  content:'›';position:absolute;left:0;color:var(--neon-blue);font-weight:700;
+}
+.tip-box {
+  background:var(--bg-surface);border:1px solid rgba(255,255,255,.06);
+  border-radius:var(--radius-sm);padding:14px;margin-bottom:10px;
+  border-left:3px solid var(--neon-purple);
+}
+.tip-box strong { color:var(--text-bright);font-size:.85rem; }
+.tip-box p { font-size:.82rem;color:var(--text);margin-top:4px;line-height:1.6; }
+
+/* --- ANIMATIONS --- */
+@keyframes fadeSlideIn {
+  from { opacity:0;transform:translateY(8px); }
+  to { opacity:1;transform:translateY(0); }
+}
+@keyframes flamePulse {
+  0%,100% { transform:scale(1); }
+  50% { transform:scale(1.15); }
+}
+@keyframes glowPulse {
+  0%,100% { box-shadow:0 0 10px rgba(0,212,255,.2); }
+  50% { box-shadow:0 0 25px rgba(0,212,255,.4); }
+}
+@keyframes xpFloat {
+  0% { opacity:1;transform:translateY(0); }
+  100% { opacity:0;transform:translateY(-40px); }
+}
+@keyframes shake {
+  0%,100% { transform:translateX(0); }
+  15% { transform:translateX(-8px); }
+  30% { transform:translateX(8px); }
+  45% { transform:translateX(-6px); }
+  60% { transform:translateX(6px); }
+  75% { transform:translateX(-3px); }
+  90% { transform:translateX(3px); }
+}
+@keyframes levelUp {
+  0% { transform:scale(1);filter:brightness(1); }
+  30% { transform:scale(1.3);filter:brightness(1.5); }
+  50% { transform:scale(1.1);filter:brightness(1.3); }
+  70% { transform:scale(1.25);filter:brightness(1.4); }
+  100% { transform:scale(1);filter:brightness(1); }
+}
+.shake { animation:shake .5s ease; }
+.level-up-glow { animation:levelUp .8s ease; }
+.animate-in { animation:fadeSlideIn .4s ease forwards; }
+
+/* Float XP text */
+.xp-float {
+  position:fixed;pointer-events:none;
+  font-size:1.2rem;font-weight:900;color:var(--neon-purple);
+  text-shadow:0 0 10px rgba(168,85,247,.5);
+  animation:xpFloat 1.2s ease forwards;
+  z-index:600;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width:900px) {
+  .dash-grid { grid-template-columns:1fr; }
+  .grade-meters { grid-template-columns:1fr; }
+  .exam-parts { grid-template-columns:1fr; }
+}
+@media (max-width:700px) {
+  .game-map { grid-template-columns:1fr; }
+  .main { padding:16px; }
+}
+@media (max-width:500px) {
+  :root { --sidebar-w:56px; }
+  .sidebar-logo { width:36px;height:36px;font-size:13px; }
+  .sidebar-btn { width:36px;height:36px;font-size:17px; }
+}
+
+/* --- QUIZ SYSTEM --- */
+.quiz-gate {
+  background:linear-gradient(135deg, rgba(0,212,255,.08), rgba(168,85,247,.08));
+  border:2px dashed rgba(0,212,255,.3);
+  border-radius:var(--radius-lg);padding:28px;text-align:center;
+  margin-top:20px;position:relative;overflow:hidden;
+}
+.quiz-gate::before {
+  content:'';position:absolute;top:-30%;right:-10%;
+  width:150px;height:150px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,212,255,.1),transparent 70%);
+}
+.quiz-gate h3 { color:var(--neon-blue);font-size:1.1rem;margin-bottom:8px; }
+.quiz-gate p { color:var(--text-dim);font-size:.85rem;margin-bottom:16px; }
+.quiz-start-btn {
+  padding:12px 32px;border-radius:var(--radius);border:none;
+  background:linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+  color:#fff;font-weight:700;font-size:.95rem;cursor:pointer;
+  transition:var(--transition);box-shadow:0 0 20px rgba(0,212,255,.2);
+}
+.quiz-start-btn:hover { transform:translateY(-2px);box-shadow:0 0 30px rgba(0,212,255,.4); }
+.quiz-start-btn:disabled {
+  opacity:.4;cursor:not-allowed;transform:none;box-shadow:none;
+}
+
+.quiz-container {
+  background:var(--bg-card);border:1px solid rgba(0,212,255,.15);
+  border-radius:var(--radius-lg);padding:24px;margin-top:20px;
+  position:relative;
+}
+.quiz-header {
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:20px;
+}
+.quiz-progress-text { font-size:.85rem;color:var(--text-dim); }
+.quiz-score { font-size:.85rem;font-weight:700;color:var(--neon-green); }
+
+.quiz-question {
+  background:var(--bg-surface);border:1px solid rgba(255,255,255,.06);
+  border-radius:var(--radius);padding:20px;margin-bottom:16px;
+}
+.quiz-question-text {
+  font-size:1rem;color:var(--text-bright);line-height:1.7;margin-bottom:14px;
+}
+.quiz-input-row {
+  display:flex;gap:10px;align-items:center;
+}
+.quiz-input {
+  flex:1;max-width:200px;padding:10px 14px;border-radius:var(--radius-sm);
+  border:2px solid rgba(255,255,255,.1);background:var(--bg-input);
+  color:var(--text-bright);font-size:1rem;font-weight:600;
+  transition:var(--transition);
+  -moz-appearance:textfield;
+}
+.quiz-input::-webkit-outer-spin-button,
+.quiz-input::-webkit-inner-spin-button { -webkit-appearance:none;margin:0; }
+.quiz-input:focus { outline:none;border-color:var(--neon-blue);box-shadow:0 0 12px rgba(0,212,255,.2); }
+.quiz-input.correct { border-color:var(--neon-green);box-shadow:0 0 12px rgba(34,197,94,.3); }
+.quiz-input.incorrect { border-color:var(--neon-red);box-shadow:0 0 12px rgba(239,68,68,.3); }
+.quiz-check-btn {
+  padding:10px 20px;border-radius:var(--radius-sm);border:none;
+  background:var(--neon-blue);color:#fff;font-weight:700;font-size:.85rem;
+  cursor:pointer;transition:var(--transition);
+}
+.quiz-check-btn:hover { background:#00b8d4; }
+.quiz-check-btn:disabled { opacity:.4;cursor:not-allowed; }
+
+.quiz-feedback {
+  margin-top:10px;padding:10px 14px;border-radius:var(--radius-sm);
+  font-size:.85rem;font-weight:600;display:none;
+}
+.quiz-feedback.show { display:block;animation:fadeSlideIn .3s ease; }
+.quiz-feedback.correct { background:var(--grade-e-bg);color:var(--grade-e); }
+.quiz-feedback.incorrect { background:rgba(239,68,68,.1);color:var(--neon-red); }
+
+.quiz-results {
+  text-align:center;padding:32px;
+}
+.quiz-results-score {
+  font-size:3rem;font-weight:900;margin-bottom:8px;
+}
+.quiz-results-label {
+  font-size:1rem;color:var(--text-dim);margin-bottom:6px;
+}
+.quiz-results-msg {
+  font-size:.9rem;color:var(--text);margin-bottom:20px;
+}
+.quiz-results-xp {
+  font-size:1.3rem;font-weight:800;color:var(--neon-purple);
+  margin-bottom:16px;
+}
+.quiz-badge {
+  display:inline-block;width:80px;height:80px;border-radius:50%;
+  margin-bottom:16px;position:relative;
+  background:linear-gradient(135deg,var(--neon-blue),var(--neon-purple));
+  display:flex;align-items:center;justify-content:center;
+  font-size:2.5rem;
+  box-shadow:0 0 30px rgba(0,212,255,.3);
+  animation:glowPulse 2s ease infinite;
+  margin-left:auto;margin-right:auto;
+}
+
+/* Flying XP orb */
+.xp-orb {
+  position:fixed;pointer-events:none;z-index:700;
+  width:32px;height:32px;border-radius:50%;
+  background:radial-gradient(circle,var(--neon-purple),rgba(168,85,247,.6));
+  box-shadow:0 0 15px rgba(168,85,247,.6);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.6rem;font-weight:800;color:#fff;
+}
+@keyframes orbTrail {
+  0% { opacity:1;transform:scale(1); }
+  100% { opacity:0;transform:scale(.3); }
+}
+.xp-orb-trail {
+  position:fixed;pointer-events:none;z-index:699;
+  width:8px;height:8px;border-radius:50%;
+  background:var(--neon-purple);opacity:.5;
+  animation:orbTrail .5s ease forwards;
+}
+
+/* Badge display */
+.chapter-badges {
+  display:flex;gap:8px;margin:12px 0;
+}
+.badge-slot {
+  width:40px;height:40px;border-radius:50%;
+  border:2px dashed rgba(255,255,255,.1);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;opacity:.3;
+  transition:var(--transition);
+}
+.badge-slot.earned {
+  opacity:1;border-style:solid;
+  box-shadow:0 0 10px rgba(250,204,21,.3);
+}
+.badge-slot.earned.badge-bronze { border-color:#cd7f32;background:rgba(205,127,50,.1); }
+.badge-slot.earned.badge-silver { border-color:#c0c0c0;background:rgba(192,192,192,.1); }
+.badge-slot.earned.badge-gold { border-color:#ffd700;background:rgba(255,215,0,.15);box-shadow:0 0 15px rgba(255,215,0,.3); }
+
+/* Quiz passed indicator on stage tab */
+.quiz-passed-indicator {
+  display:inline-block;font-size:.65rem;color:var(--neon-green);
+  background:rgba(34,197,94,.15);padding:2px 6px;border-radius:4px;
+  margin-top:4px;
+}
+
+/* --- LOCK & UNLOCK SYSTEM --- */
+.stage-tab { position:relative;overflow:hidden; }
+.stage-tab.locked-tab {
+  opacity:1;
+  background:rgba(15,15,26,.8);
+  border:2px solid rgba(255,255,255,.06);
+  overflow:hidden;
+}
+/* Shimmer sweep on locked tabs (Fortnite-style enticement) */
+.stage-tab.locked-tab::after {
+  content:'';position:absolute;top:0;left:-80%;
+  width:60%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.04),transparent);
+  animation:lockedShimmer 4s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes lockedShimmer {
+  0%,80%,100% { left:-80%; }
+  40% { left:120%; }
+}
+.stage-tab.locked-tab .lock-big { font-size:1.8rem;margin-bottom:2px;filter:drop-shadow(0 0 8px rgba(255,255,255,.15)); }
+.stage-tab.locked-tab .lock-req { font-size:.62rem;color:var(--text-dim);line-height:1.3; }
+
+/* Lock shatter */
+@keyframes lockShatter {
+  0% { transform:scale(1) rotate(0deg);opacity:1;filter:brightness(1); }
+  20% { transform:scale(1.4) rotate(8deg);opacity:1;filter:brightness(2); }
+  40% { transform:scale(1.6) rotate(-12deg);opacity:.7;filter:brightness(2.5); }
+  60% { transform:scale(0.6) rotate(20deg);opacity:.4;filter:brightness(1.5); }
+  100% { transform:scale(0) rotate(45deg);opacity:0;filter:brightness(3); }
+}
+@keyframes unlockGlow {
+  0% { box-shadow:0 0 0 rgba(0,212,255,0); }
+  20% { box-shadow:0 0 40px rgba(0,212,255,.6), 0 0 80px rgba(168,85,247,.3), inset 0 0 20px rgba(0,212,255,.15); }
+  100% { box-shadow:0 0 0 rgba(0,212,255,0); }
+}
+@keyframes unlockBorder {
+  0% { border-color:rgba(255,255,255,.06); }
+  30% { border-color:var(--neon-blue); }
+  100% { border-color:rgba(255,255,255,.06); }
+}
+.stage-tab.just-unlocked {
+  animation:unlockGlow 2s ease, unlockBorder 2s ease;
+}
+.lock-shattering { animation:lockShatter .7s ease forwards; }
+
+/* Unlock particles */
+.unlock-particle {
+  position:fixed;pointer-events:none;z-index:700;
+  border-radius:50%;
+  animation:unlockPFly .8s cubic-bezier(.2,.6,.3,1) forwards;
+}
+@keyframes unlockPFly {
+  0% { transform:translate(0,0) scale(1);opacity:1; }
+  100% { transform:translate(var(--dx),var(--dy)) scale(0);opacity:0; }
+}
+
+/* Unlock flash overlay */
+.unlock-flash {
+  position:absolute;inset:0;border-radius:inherit;
+  background:radial-gradient(circle,rgba(0,212,255,.4),transparent 70%);
+  opacity:0;pointer-events:none;
+  animation:unlockFlash .6s ease forwards;
+}
+@keyframes unlockFlash {
+  0% { opacity:0;transform:scale(.5); }
+  30% { opacity:1;transform:scale(1.2); }
+  100% { opacity:0;transform:scale(2); }
+}
+
+/* --- RANK SYSTEM --- */
+.rank-badge-top {
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 12px;border-radius:16px;font-size:.72rem;font-weight:700;
+  border:1px solid;transition:var(--transition);
+}
+.rank-badge-top:hover { transform:scale(1.05); }
+.rank-badge-top.rank-high {
+  animation:rankGlow 2.5s ease-in-out infinite;
+}
+@keyframes rankGlow {
+  0%,100% { filter:brightness(1);box-shadow:0 0 0 transparent; }
+  50% { filter:brightness(1.15);box-shadow:0 0 12px currentColor; }
+}
+
+/* --- PROFILE PAGE --- */
+.profile-hero {
+  max-width:520px;margin:0 auto 24px;
+  background:linear-gradient(145deg, #1e1e36, #1a1a2e);
+  border:2px solid;
+  border-radius:var(--radius-lg);
+  padding:0;overflow:hidden;
+  position:relative;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+}
+.profile-banner {
+  height:90px;position:relative;overflow:hidden;
+}
+.profile-banner::after {
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(to bottom,transparent 40%,var(--bg-card));
+}
+.profile-body { padding:0 28px 28px;text-align:center;position:relative; }
+.profile-avatar-wrap {
+  width:88px;height:88px;border-radius:50%;
+  margin:-44px auto 12px;position:relative;z-index:2;
+  border:4px solid;
+  display:flex;align-items:center;justify-content:center;
+  font-size:2.6rem;
+  transition:all .5s ease;
+}
+.profile-avatar-wrap img { width:100%;height:100%;border-radius:50%;object-fit:cover; }
+.profile-rank-name { font-size:1.4rem;font-weight:900;margin-bottom:2px; }
+.profile-rank-title { font-size:.8rem;color:var(--text-dim);margin-bottom:16px; }
+
+.profile-stats-row {
+  display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:20px;
+}
+.profile-stat-box {
+  padding:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius);
+}
+.profile-stat-val { font-size:1.2rem;font-weight:800; }
+.profile-stat-lbl { font-size:.6rem;color:var(--text-dim);margin-top:2px; }
+
+/* Rank progression path */
+.rank-path {
+  display:flex;align-items:center;gap:0;justify-content:center;
+  flex-wrap:wrap;margin:16px 0;
+}
+.rank-node {
+  display:flex;flex-direction:column;align-items:center;
+  padding:8px 6px;min-width:60px;position:relative;
+  transition:var(--transition);
+}
+.rank-node-icon { font-size:1.5rem;margin-bottom:2px;transition:all .3s; }
+.rank-node-name { font-size:.55rem;font-weight:700;color:var(--text-dim);max-width:60px;text-align:center; }
+.rank-node.locked { opacity:.25;filter:grayscale(1); }
+.rank-node.current {
+  opacity:1;transform:scale(1.15);
+}
+.rank-node.current .rank-node-icon { filter:drop-shadow(0 0 8px currentColor); }
+.rank-node.earned { opacity:.7; }
+.rank-connector {
+  width:20px;height:2px;background:rgba(255,255,255,.1);
+  flex-shrink:0;margin-top:-14px;
+}
+.rank-connector.filled { background:var(--neon-blue); }
+
+/* Progress tower */
+.tower-wrap {
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:20px;
+}
+.tower-block {
+  display:flex;align-items:center;gap:8px;
+  width:100%;max-width:280px;padding:8px 14px;
+  border-radius:var(--radius-sm);
+  border:1px solid rgba(255,255,255,.06);
+  background:var(--bg-surface);
+  font-size:.75rem;color:var(--text-dim);
+  transition:all .5s ease;
+}
+.tower-block.built {
+  border-color:rgba(0,212,255,.3);
+  background:linear-gradient(90deg,rgba(0,212,255,.08),rgba(168,85,247,.08));
+  color:var(--text-bright);
+}
+.tower-block.built .tower-icon { filter:none; }
+.tower-icon { font-size:1.1rem;filter:grayscale(1) brightness(.5); }
+.tower-pct { margin-left:auto;font-size:.65rem;font-weight:700; }
+.tower-flag {
+  font-size:2rem;margin-bottom:4px;
+  filter:drop-shadow(0 0 10px rgba(250,204,21,.5));
+}
+
+/* Focus areas */
+.focus-area {
+  display:flex;align-items:center;gap:12px;padding:12px;
+  background:var(--bg-surface);border:1px solid rgba(255,255,255,.04);
+  border-radius:var(--radius-sm);cursor:pointer;
+  margin-bottom:8px;transition:var(--transition);
+}
+.focus-area:hover { border-color:var(--neon-blue);transform:translateX(4px);background:rgba(59,130,246,.04); }
+.focus-rank {
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.8rem;font-weight:800;color:var(--neon-red);
+  background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);
+  flex-shrink:0;
+}
+.focus-info { flex:1;min-width:0; }
+.focus-name { font-size:.8rem;font-weight:600;color:var(--text-bright); }
+.focus-go {
+  font-size:1.1rem;color:var(--neon-blue);opacity:.5;
+  transition:var(--transition);flex-shrink:0;
+}
+.focus-area:hover .focus-go { opacity:1;transform:translateX(3px); }
+
+/* Achievement grid */
+.ach-grid {
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;
+}
+.ach-card {
+  background:var(--bg-surface);border:1px solid rgba(255,255,255,.06);
+  border-radius:var(--radius);padding:14px 10px;text-align:center;
+  transition:var(--transition);position:relative;
+}
+.ach-card.locked { opacity:.3;filter:grayscale(.8); }
+.ach-card.earned { border-color:rgba(250,204,21,.25); }
+.ach-card.earned::after {
+  content:'';position:absolute;inset:-1px;border-radius:inherit;
+  background:linear-gradient(135deg,rgba(250,204,21,.06),transparent 60%);
+  pointer-events:none;
+}
+.ach-card.new { animation:achievePop .5s ease; }
+@keyframes achievePop {
+  0% { transform:scale(.8);opacity:0; }
+  60% { transform:scale(1.1); }
+  100% { transform:scale(1);opacity:1; }
+}
+.ach-icon { font-size:1.8rem;margin-bottom:4px; }
+.ach-name { font-size:.7rem;font-weight:700;color:var(--text-bright);line-height:1.3; }
+.ach-desc { font-size:.58rem;color:var(--text-dim);margin-top:2px;line-height:1.3; }
+
+/* --- AVATAR DISPLAY --- */
+.av-wrap {
+  position:relative;display:inline-block;overflow:visible;
+}
+.av-img {
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  border-radius:50%;z-index:1;
+}
+.av-frame {
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  pointer-events:none;z-index:2;
+}
+.av-item {
+  position:absolute;top:-8%;right:-8%;
+  z-index:3;
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.7));
+}
+.av-rank-badge {
+  position:absolute;bottom:-30%;left:50%;transform:translateX(-50%);
+  z-index:3;
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.7));
+}
+
+/* --- COSMETIC COLLECTION --- */
+.cosm-section-title {
+  font-size:.85rem;font-weight:700;color:var(--text-bright);
+  margin:16px 0 10px;display:flex;align-items:center;gap:8px;
+}
+.cosm-grid {
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px;
+}
+.cosm-item {
+  background:var(--bg-surface);border:2px solid rgba(255,255,255,.06);
+  border-radius:var(--radius-sm);padding:6px;text-align:center;
+  cursor:pointer;transition:var(--transition);position:relative;
+}
+.cosm-item:hover:not(.cosm-locked) { border-color:var(--neon-blue);transform:translateY(-2px); }
+.cosm-item img { width:52px;height:52px;object-fit:contain; }
+.cosm-item-name { font-size:.55rem;color:var(--text-dim);margin-top:3px;line-height:1.2; }
+.cosm-locked { opacity:.25;cursor:not-allowed; }
+.cosm-locked .cosm-lock-icon { position:absolute;top:3px;right:3px;font-size:.65rem; }
+.cosm-equipped { border-color:var(--neon-green);background:rgba(34,197,94,.08); }
+.cosm-equipped::after {
+  content:'✓';position:absolute;top:3px;right:5px;
+  font-size:.65rem;font-weight:800;color:var(--neon-green);
+}
+.cosm-req { font-size:.5rem;color:var(--text-dim);line-height:1.2; }
+.cosm-mystery { cursor:default;opacity:.5; }
+.cosm-mystery:hover { transform:none;border-color:rgba(255,255,255,.06); }
+.cosm-mystery-box {
+  width:52px;height:52px;margin:0 auto;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;font-weight:800;color:var(--neon-purple);
+  background:linear-gradient(135deg,rgba(139,92,246,.15),rgba(139,92,246,.05));
+  border-radius:var(--radius-sm);
+}
+.cosm-ready { cursor:pointer !important;opacity:1 !important;border-color:var(--neon-gold) !important;background:rgba(255,215,0,.08) !important; animation:subtlePulse 2s ease-in-out infinite; }
+.cosm-ready:hover { transform:translateY(-3px) scale(1.05) !important;box-shadow:0 0 20px rgba(255,215,0,.3); }
+.cosm-glow {
+  color:var(--neon-gold) !important;
+  background:linear-gradient(135deg,rgba(255,215,0,.2),rgba(255,215,0,.05)) !important;
+  box-shadow:0 0 15px rgba(255,215,0,.3);
+  animation:mysteryGlow 1.5s ease-in-out infinite;
+}
+@keyframes mysteryGlow {
+  0%,100%{box-shadow:0 0 10px rgba(255,215,0,.2);transform:scale(1);}
+  50%{box-shadow:0 0 25px rgba(255,215,0,.5);transform:scale(1.05);}
+}
+.cosm-revealing {
+  animation:revealPop .6s ease-out forwards;
+}
+@keyframes revealPop {
+  0%{transform:scale(1);opacity:1;}
+  30%{transform:scale(1.3);opacity:.8;}
+  60%{transform:scale(.9);opacity:1;}
+  100%{transform:scale(1);opacity:1;}
+}
+.notif-dot {
+  position:absolute;top:2px;right:2px;
+  width:8px;height:8px;border-radius:50%;
+  background:var(--neon-gold);
+  box-shadow:0 0 6px var(--neon-gold);
+  animation:subtlePulse 2s ease-in-out infinite;
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR (icon rail) -->
+<nav class="sidebar">
+  <div class="sidebar-logo" onclick="showPage('dashboard')" title="Hem">NP</div>
+  <button class="sidebar-btn active" data-page="dashboard" onclick="showPage('dashboard')">
+    <span>&#127968;</span><span class="tooltip">Översikt</span>
+  </button>
+  <button class="sidebar-btn" data-page="stats" onclick="showPage('stats')">
+    <span>&#128202;</span><span class="tooltip">Statistik</span>
+  </button>
+  <button class="sidebar-btn" data-page="examinfo" onclick="showPage('examinfo')">
+    <span>&#128214;</span><span class="tooltip">Provinfo</span>
+  </button>
+  <button class="sidebar-btn" data-page="profile" onclick="showPage('profile')">
+    <span>&#129351;</span><span class="tooltip">Profil & Rang</span>
+  </button>
+  <div class="sidebar-spacer"></div>
+  <div class="sidebar-streak" onclick="showStreakModal()" title="Din streak">
+    <span class="streak-flame">&#128293;</span>
+    <span class="streak-num" id="sidebarStreak">0</span>
+  </div>
+</nav>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar-title" id="topbarTitle">NP Matte Quest</div>
+  <div class="topbar-spacer"></div>
+  <div class="xp-display">
+    <span class="xp-icon">&#9889;</span>
+    <span id="topbarXp">0</span> XP
+  </div>
+  <div class="level-badge">
+    Lvl <span id="topbarLevel">1</span>
+  </div>
+  <div class="rank-badge-top" id="rankBadge" onclick="showPage('profile')" style="cursor:pointer">
+    🔰 Kadett
+  </div>
+  <div class="topbar-countdown" id="topbarCountdown"></div>
+</header>
+
+<!-- MAIN -->
+<main class="main" id="mainContent"></main>
+
+<!-- XP POPUP -->
+<div class="xp-popup" id="xpPopup">
+  <span class="xp-popup-icon">&#9889;</span>
+  <div>
+    <div class="xp-popup-text" id="xpPopupText">+10 XP</div>
+    <div class="xp-popup-bonus" id="xpPopupBonus"></div>
+  </div>
+</div>
+
+<!-- VIDEO MODAL -->
+<div class="video-modal-overlay" id="videoOverlay" onclick="closeVideo()">
+  <div class="video-modal" onclick="event.stopPropagation()">
+    <button class="video-modal-close" onclick="closeVideo()">&times;</button>
+    <iframe id="videoIframe" allowfullscreen allow="autoplay"></iframe>
+  </div>
+</div>
+
+<!-- STREAK MODAL -->
+<div class="streak-modal" id="streakModal" onclick="closeStreakModal()">
+  <div class="streak-content" onclick="event.stopPropagation()">
+    <div class="streak-big-flame">&#128293;</div>
+    <div class="streak-big-num" id="streakBigNum">0</div>
+    <div class="streak-big-label">dagars streak!</div>
+    <p style="font-size:.8rem;color:var(--text-dim);margin-bottom:16px" id="streakMsg">Varje dag du övar räknar!</p>
+    <button class="streak-close" onclick="closeStreakModal()">Kör vidare!</button>
+  </div>
+</div>
+
+<!-- SCRIPTS -->
+<script src="chapters_data.js"></script>
+<script src="quiz_data.js"></script>
+<script>
+// ============================================================
+// NP MATTE QUEST — Game Engine
+// ============================================================
+
+// --- CONSTANTS ---
+const LS = "npq_";
+const XP_E = 10, XP_C = 25, XP_A = 50;
+
+// Problems that require calculator (med miniräknare). All others are "utan".
+// Key = chapter id, value = Set of problem nums.
+const CALC_NEEDED = {
+  1: new Set(),
+  2: new Set(),
+  3: new Set([5, 7, 8, 10]),
+  4: new Set([10, 12]),
+  5: new Set([13, 14]),
+  6: new Set([5, 6, 8, 9]),
+  7: new Set([6]),
+  8: new Set([5, 7, 8, 9, 10, 11, 12]),
+  9: new Set(),
+  10: new Set([4, 6]),
+  11: new Set([8]),
+  12: new Set([8]),
+};
+const XP_PER_LEVEL = 200;
+const BONUS_CHANCE = 0.15; // 15% chance of bonus XP (variable reward)
+
+// Provvikt per ämnesområde (snittpoäng/prov ur sammanställningen)
+const PROV_VIKT = {
+  1: 10.3, 2: 3.0, 3: 6.3, 4: 11.0, 5: 14.0, 6: 5.3,
+  7: 3.3, 8: 10.6, 9: 4.6, 10: 2.7, 11: 5.7, 12: 3.4
+};
+const MAX_VIKT = Math.max(...Object.values(PROV_VIKT));
+const TOTAL_PROV_POANG = 80; // snitt
+
+// Emojis per chapter (game icons)
+const CH_ICONS = {
+  1:'🔢', 2:'➗', 3:'💯', 4:'🔤', 5:'🔮', 6:'📐',
+  7:'📈', 8:'📦', 9:'🔺', 10:'📍', 11:'📊', 12:'🎲'
+};
+
+// Rank system — 14 ranks with custom badge images
+const RANKS = [
+  { minLevel:1,  name:'Rekryt',            img:'1-rekryt.png',           icon:'🔰', color:'#94a3b8', title:'Nybörjare' },
+  { minLevel:2,  name:'Ekvationskadet',    img:'2-ekvationskadet.png',   icon:'📐', color:'#22c55e', title:'Räknar rätt' },
+  { minLevel:3,  name:'Vektorsoldat',      img:'3-vektorsoldat.png',     icon:'🗡️', color:'#14b8a6', title:'Har riktning' },
+  { minLevel:5,  name:'Sigmapilot',        img:'4-sigmapilot.png',       icon:'✈️', color:'#3b82f6', title:'Flygande start' },
+  { minLevel:6,  name:'Primtalskrigare',   img:'5-primtalskrigare.png',  icon:'⚔️', color:'#6366f1', title:'Odelbar' },
+  { minLevel:8,  name:'Deltastriker',      img:'6-deltastriker.png',     icon:'🎯', color:'#8b5cf6', title:'Träffsäker' },
+  { minLevel:10, name:'Matrixvakt',        img:'7-matrixvakt.png',       icon:'🛡️', color:'#475569', title:'Skyddar kunskapen' },
+  { minLevel:12, name:'Thetablixt',        img:'8-thetablixt.png',       icon:'⚡', color:'#06b6d4', title:'Blixtsnabb' },
+  { minLevel:14, name:'Diamantfaktor',     img:'9-diamantfaktor.png',    icon:'💎', color:'#67e8f9', title:'Oslipbar' },
+  { minLevel:16, name:'Integralkapten',    img:'10-integralkapten.png',  icon:'⚓', color:'#f97316', title:'Summerar allt' },
+  { minLevel:18, name:'X-General',         img:'11-x-general.png',       icon:'⭐', color:'#ef4444', title:'Löser det okända' },
+  { minLevel:20, name:'Bevismästare',      img:'12-bevismastare.png',    icon:'🏅', color:'#eab308', title:'Bevisat allt' },
+  { minLevel:23, name:'Pi-Kommendör',      img:'13-pi-kommendor.png',    icon:'🔮', color:'#7c3aed', title:'Oändlig precision' },
+  { minLevel:26, name:'Infinity-Kejsare',  img:'14-infinitykejsare.png', icon:'👑', color:'#ffd700', title:'Gränslös' },
+];
+
+// Cosmetics — avatars, frames, items
+const AVATARS = [
+  { id:'cat',     name:'Katten',           req:null },
+  { id:'dog',     name:'Hunden',           req:null },
+  { id:'frog',    name:'Grodan',           req:null },
+  { id:'bear',    name:'Björnen',          req:()=>getLevel()>=2 },
+  { id:'fish',    name:'Fisken',           req:()=>getLevel()>=2 },
+  { id:'panda',   name:'Pandan',           req:()=>getLevel()>=3 },
+  { id:'penguin', name:'Pingvinen',        req:()=>getLevel()>=4 },
+  { id:'Hamster', name:'Hamstern',         req:()=>getLevel()>=5 },
+  { id:'pigeon',  name:'Duvan',            req:()=>getLevel()>=6 },
+  { id:'raccoon', name:'Tvättbjörnen',     req:()=>getLevel()>=8 },
+  { id:'octopus', name:'Bläckfisken',      req:()=>getLevel()>=10 },
+  { id:'wolf',    name:'Vargen',           req:()=>getLevel()>=13 },
+  { id:'leopard', name:'Leoparden',        req:()=>getLevel()>=16 },
+  { id:'rooster', name:'Tuppen',           req:()=>getLevel()>=20 },
+  { id:'raccoon3',name:'Guld-Tvättbjörn',  req:()=>lsGet('has_perfect_quiz',false) },
+];
+const FRAMES = [
+  { id:'simple-black',   name:'Enkel',          req:null },
+  { id:'thin-silver',    name:'Silver',          req:()=>getLevel()>=3 },
+  { id:'glow-blue',      name:'Blå Glow',        req:()=>getLevel()>=6 },
+  { id:'glow-purple',    name:'Lila Glow',        req:()=>getLevel()>=10 },
+  { id:'neon-bluepurple', name:'Neon',            req:()=>getLevel()>=14 },
+  { id:'fire-orange',    name:'Eld',              req:()=>getLevel()>=18 },
+  { id:'elegant-gold',   name:'Guld',             req:()=>getLevel()>=22 },
+  { id:'diamond-silver', name:'Diamant',          req:()=>getLevel()>=26 },
+];
+const ITEMS = [
+  { id:'',            name:'Ingen',         req:null },
+  { id:'backpack',    name:'Ryggsäck',      req:null },
+  { id:'ruler',       name:'Linjal',        req:null },
+  { id:'banana',      name:'Banan',         req:()=>getLevel()>=2 },
+  { id:'waterbottle', name:'Vattenflaska',  req:()=>getLevel()>=4 },
+  { id:'calculator',  name:'Miniräknare',   req:()=>chapters.some(ch=>['E','C','A'].some(s=>isQuizPassed(ch.id,s))) },
+  { id:'checklist',   name:'Checklista',    req:()=>getTotalProgress().done>=10 },
+  { id:'chocolate',   name:'Choklad',       req:()=>getLevel()>=7 },
+  { id:'pizza',       name:'Pizza',         req:()=>getStreak()>=7 },
+  { id:'energydrink', name:'Energidryck',   req:()=>getLevel()>=11 },
+  { id:'phone',       name:'Mobil',         req:()=>'EDCBA'.includes(getGradeReadiness().grade) },
+  { id:'stopwatch',   name:'Stoppur',       req:()=>getLevel()>=15 },
+  { id:'socks',       name:'Strumpor',      req:()=>getStreak()>=14 },
+  { id:'handsanitizer',name:'Handsprit',    req:()=>{const t=getTotalProgress();return t.eT>0&&t.eD===t.eT;} },
+];
+
+// Achievements (like CoD calling cards / badges)
+const ACHIEVEMENTS = [
+  { id:'first_solve',  name:'Första Steget',        desc:'Lös din första uppgift',          icon:'👣' },
+  { id:'ten_done',     name:'Kunskapstörst',        desc:'Lös 10 uppgifter',               icon:'📚' },
+  { id:'twentyfive',   name:'Kvarts',               desc:'Lös 25 uppgifter',               icon:'💪' },
+  { id:'fifty_pct',    name:'Halvvägs',              desc:'Klara 50% av alla uppgifter',    icon:'⚡' },
+  { id:'all_e',        name:'E-Mästare',             desc:'Klara alla E-uppgifter',         icon:'🟢' },
+  { id:'all_c',        name:'C-Krigare',             desc:'Klara alla C-uppgifter',         icon:'🟡' },
+  { id:'all_a',        name:'A-Geni',                desc:'Klara alla A-uppgifter',         icon:'🟣' },
+  { id:'first_quiz',   name:'Quiz-Hjälte',           desc:'Klara ditt första quiz',         icon:'📝' },
+  { id:'perfect_quiz', name:'Perfektionist',         desc:'Få 100% på ett quiz',            icon:'💯' },
+  { id:'streak_7',     name:'Uthållig',              desc:'7 dagars streak',                icon:'🔥' },
+  { id:'streak_14',    name:'Ostoppbar',             desc:'14 dagars streak',               icon:'💥' },
+  { id:'streak_30',    name:'Legendär Uthållighet',  desc:'30 dagars streak',               icon:'🌟' },
+  { id:'xp_1000',      name:'XP-Samlare',            desc:'Tjäna 1 000 XP',                icon:'💰' },
+  { id:'xp_5000',      name:'XP-Monster',            desc:'Tjäna 5 000 XP',                icon:'🏆' },
+  { id:'chapter_done', name:'Kapitel Klart',          desc:'Klara ett helt kapitel',         icon:'🏅' },
+  { id:'three_ch',     name:'Tre Klara',              desc:'Klara tre hela kapitel',         icon:'🎯' },
+  { id:'grade_e',      name:'Betygsvägen E',          desc:'Uppskattad betygsnivå E',       icon:'🎓' },
+  { id:'grade_c',      name:'Betygsvägen C',          desc:'Uppskattad betygsnivå C',       icon:'🎓' },
+  { id:'grade_a',      name:'Betygsvägen A',          desc:'Uppskattad betygsnivå A',       icon:'🎓' },
+  { id:'first_unlock', name:'Låssprängare',           desc:'Lås upp din första C-nivå',     icon:'🔓' },
+];
+
+// --- STATE ---
+let currentPage = "dashboard";
+let currentChapter = null;
+let currentStage = "E";
+let activeVariant = {}; // key: "chId_qNum" => variant index (0=main)
+
+// --- LOCAL STORAGE HELPERS ---
+function lsGet(k,def){ const v=localStorage.getItem(LS+k); return v!==null?JSON.parse(v):def; }
+function lsSet(k,v){ localStorage.setItem(LS+k,JSON.stringify(v)); }
+function isDone(ch,q){ return lsGet(`ch${ch}_q${q}`,false); }
+function setDone(ch,q,v){ lsSet(`ch${ch}_q${q}`,v); }
+
+// XP
+function getXp(){ return lsGet("xp",0); }
+function addXp(amount){
+  const cur = getXp();
+  const oldLevel = Math.floor(cur/XP_PER_LEVEL)+1;
+  lsSet("xp", cur+amount);
+  const newLevel = Math.floor((cur+amount)/XP_PER_LEVEL)+1;
+
+  // Animated XP counter
+  animateCounter(document.getElementById('topbarXp'), cur, cur+amount, 600);
+
+  // Level-up celebration!
+  if(newLevel > oldLevel){
+    setTimeout(()=>{
+      const badge = document.querySelector('.level-badge');
+      if(badge) badge.classList.add('level-up-glow');
+      setTimeout(()=>{ if(badge) badge.classList.remove('level-up-glow'); },800);
+      showXpPopup('&#127881;',`LEVEL UP! Nivå ${newLevel}!`,'Fortsätt så här!');
+      if(window.confetti){
+        confetti({particleCount:100,spread:90,origin:{y:.3},colors:['#00d4ff','#a855f7','#f472b6','#facc15']});
+      }
+    }, 900);
+  }
+
+  updateTopbar();
+  return cur+amount;
+}
+
+function animateCounter(el, from, to, duration){
+  if(!el) return;
+  const start = performance.now();
+  function step(now){
+    const t = Math.min((now-start)/duration, 1);
+    const ease = 1 - Math.pow(1-t, 3);
+    el.textContent = Math.round(from + (to-from)*ease);
+    if(t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+function getLevel(){ return Math.floor(getXp()/XP_PER_LEVEL)+1; }
+
+// Streak
+function getStreak(){ return lsGet("streak",0); }
+function getLastVisit(){ return lsGet("lastVisit",""); }
+function updateStreak(){
+  const today = new Date().toISOString().slice(0,10);
+  const last = getLastVisit();
+  if(last === today) return; // already visited today
+
+  const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
+  if(last === yesterday){
+    lsSet("streak", getStreak()+1);
+  } else if(last !== today){
+    // Streak broken (or first visit)
+    if(last && last !== yesterday) lsSet("streak",1);
+    else if(!last) lsSet("streak",1);
+  }
+  lsSet("lastVisit",today);
+  updateTopbar();
+}
+
+// --- PROGRESS CALCULATIONS ---
+function getChapterProgress(chId){
+  const ch = chapters.find(c=>c.id===chId);
+  if(!ch) return {total:0,done:0,eT:0,eD:0,cT:0,cD:0,aT:0,aD:0};
+  let eT=0,eD=0,cT=0,cD=0,aT=0,aD=0;
+  ch.problems.forEach((p,i)=>{
+    const d = isDone(chId,i+1);
+    if(p.level==='E'){eT++;if(d)eD++;}
+    else if(p.level==='C'){cT++;if(d)cD++;}
+    else{aT++;if(d)aD++;}
+  });
+  return {total:eT+cT+aT, done:eD+cD+aD, eT,eD,cT,cD,aT,aD};
+}
+
+function getTotalProgress(){
+  let t=0,d=0,eT=0,eD=0,cT=0,cD=0,aT=0,aD=0;
+  chapters.forEach(ch=>{
+    const p=getChapterProgress(ch.id);
+    t+=p.total;d+=p.done;
+    eT+=p.eT;eD+=p.eD;cT+=p.cT;cD+=p.cD;aT+=p.aT;aD+=p.aD;
+  });
+  return {total:t,done:d,eT,eD,cT,cD,aT,aD};
+}
+
+// Grade prediction model
+// Based on: E-uppgifter ≈ E-poäng potential, etc.
+function getGradeReadiness(){
+  const tp = getTotalProgress();
+  // E grade: need ~22p. E-problems map to ~33p of the exam
+  // If you master 70% of E-problems, you can expect ~23p → E
+  const ePct = tp.eT>0 ? Math.round(100*tp.eD/tp.eT) : 0;
+  // C grade: need ~42p. Need E + C mastery
+  const ecPct = (tp.eT+tp.cT)>0 ? Math.round(100*(tp.eD+tp.cD)/(tp.eT+tp.cT)) : 0;
+  // A grade: need ~62p. Need E + C + A mastery
+  const allPct = tp.total>0 ? Math.round(100*tp.done/tp.total) : 0;
+
+  // Estimated points
+  const estE = Math.round(33 * (tp.eD/Math.max(1,tp.eT)));
+  const estC = Math.round(31 * ((tp.eD+tp.cD)/Math.max(1,tp.eT+tp.cT)));
+  const estA = Math.round(16 * (tp.done/Math.max(1,tp.total)));
+  const estTotal = estE + estC + estA;
+
+  let grade = "–";
+  if(estTotal >= 62) grade = "A";
+  else if(estTotal >= 50) grade = "B";
+  else if(estTotal >= 42) grade = "C";
+  else if(estTotal >= 32) grade = "D";
+  else if(estTotal >= 22) grade = "E";
+
+  return { ePct, ecPct, allPct, estE, estC, estA, estTotal, grade,
+           eReady:ePct>=70, cReady:ecPct>=70, aReady:allPct>=70 };
+}
+
+// Stage unlock logic
+function isStageUnlocked(chId, stage){
+  if(stage==='E') return true;
+  const p = getChapterProgress(chId);
+  const qE = quizzes[chId]&&quizzes[chId]['E'];
+  const qC = quizzes[chId]&&quizzes[chId]['C'];
+  // Must complete ALL problems + pass quiz (80%) to unlock next level
+  if(stage==='C') return p.eT>0 && p.eD===p.eT && (!qE || isQuizPassed(chId,'E'));
+  if(stage==='A') return p.cT>0 && p.cD===p.cT && (!qC || isQuizPassed(chId,'C'));
+  return false;
+}
+
+// --- NAVIGATION ---
+function showPage(page, chId, stage){
+  currentPage = page;
+  if(chId !== undefined) currentChapter = chId;
+  if(stage) currentStage = stage;
+
+  // Update sidebar
+  document.querySelectorAll('.sidebar-btn').forEach(b=>{
+    const bp = b.dataset.page;
+    b.classList.toggle('active',
+      bp===page || (page==='chapter' && bp==='dashboard')
+    );
+  });
+
+  render();
+  window.scrollTo(0,0);
+}
+
+function render(){
+  const main = document.getElementById('mainContent');
+  switch(currentPage){
+    case 'dashboard': main.innerHTML = renderDashboard(); break;
+    case 'chapter': main.innerHTML = renderChapter(currentChapter); break;
+    case 'stats': main.innerHTML = renderStatsPage(); break;
+    case 'examinfo': main.innerHTML = renderExamInfo(); break;
+    case 'profile': main.innerHTML = renderProfilePage(); break;
+    case 'quiz': main.innerHTML = renderQuiz(); break;
+  }
+  // KaTeX
+  if(window.renderMathInElement){
+    renderMathInElement(main,{
+      delimiters:[{left:"\\[",right:"\\]",display:true},{left:"\\(",right:"\\)",display:false}],
+      throwOnError:false
+    });
+  }
+  updateTopbar();
+  // Play pending unlock explosion if on right page
+  if(pendingUnlock) setTimeout(()=>playPendingUnlock(),500);
+  checkNewUnlocks();
+}
+
+function updateTopbar(){
+  document.getElementById('topbarXp').textContent = getXp();
+  document.getElementById('topbarLevel').textContent = getLevel();
+  document.getElementById('sidebarStreak').textContent = getStreak();
+
+  // Update rank badge
+  const rank = getRank();
+  const rb = document.getElementById('rankBadge');
+  if(rb){
+    rb.innerHTML = `<img src="img/ranks/${rank.img}" style="width:22px;height:22px;object-fit:contain;vertical-align:middle"> ${rank.name}`;
+    rb.style.color = rank.color;
+    rb.style.borderColor = rank.color+'44';
+    rb.style.background = rank.color+'11';
+    rb.classList.toggle('rank-high', getLevel()>=9);
+  }
+
+  const examDate = new Date(2026,4,20);
+  const now = new Date();
+  const days = Math.max(0,Math.ceil((examDate-now)/(86400000)));
+  document.getElementById('topbarCountdown').innerHTML =
+    days>0 ? `<strong>${days}</strong> dagar kvar` : 'Provdag!';
+}
+
+// --- RENDER DASHBOARD ---
+function renderDashboard(){
+  const tp = getTotalProgress();
+  const g = getGradeReadiness();
+  const streak = getStreak();
+  const xp = getXp();
+  const level = getLevel();
+  const pct = tp.total>0?Math.round(100*tp.done/tp.total):0;
+
+
+  // Near-miss messages (casino psychology: highlight how close you are)
+  let nearMiss = '';
+  if(g.estTotal >= 18 && g.estTotal < 22){
+    nearMiss = `<div class="grade-tip tip-e" style="margin-bottom:16px;max-width:1200px;margin-left:auto;margin-right:auto;padding:14px 20px;font-size:.85rem;">
+      &#128161; <strong>Nästan betyg E!</strong> Du ligger på uppskattade ${g.estTotal} poäng — bara ${22-g.estTotal} poäng bort från E. Gör ett par E-uppgifter till!</div>`;
+  } else if(g.estTotal >= 38 && g.estTotal < 42){
+    nearMiss = `<div class="grade-tip tip-c" style="margin-bottom:16px;max-width:1200px;margin-left:auto;margin-right:auto;padding:14px 20px;font-size:.85rem;">
+      &#128293; <strong>Nästan betyg C!</strong> Du ligger på ${g.estTotal} poäng — bara ${42-g.estTotal} till! Satsa på C-uppgifterna!</div>`;
+  } else if(g.estTotal >= 56 && g.estTotal < 62){
+    nearMiss = `<div class="grade-tip tip-a" style="margin-bottom:16px;max-width:1200px;margin-left:auto;margin-right:auto;padding:14px 20px;font-size:.85rem;">
+      &#129321; <strong>Nästan betyg A!</strong> ${g.estTotal} poäng — bara ${62-g.estTotal} från toppen! Du kan klara det!</div>`;
+  }
+
+  return `
+  ${renderProfileHero(true)}
+  ${nearMiss}
+  <div class="dash-grid animate-in">
+    <div class="stat-card">
+      <div class="stat-value" style="color:var(--neon-orange)">${streak}</div>
+      <div class="stat-label">&#128293; Dagars streak</div>
+      ${streak>=3?`<div style="font-size:.65rem;color:var(--neon-orange);margin-top:6px">Förlora inte din streak!</div>`:''}
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:${g.grade==='A'||g.grade==='B'?'var(--neon-purple)':g.grade==='C'||g.grade==='D'?'var(--neon-yellow)':g.grade==='E'?'var(--neon-green)':'var(--text-dim)'}">${g.grade}</div>
+      <div class="stat-label">Uppskattad betygsnivå (~${g.estTotal}p)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">${tp.done}<span style="font-size:1rem;color:var(--text-dim)">/${tp.total}</span></div>
+      <div class="stat-label">Uppgifter klara</div>
+    </div>
+  </div>
+
+  <div class="grade-meters animate-in" style="animation-delay:.1s">
+    <div class="grade-meter">
+      <div class="grade-meter-header">
+        <div class="grade-letter gl-e">E</div>
+        <div>
+          <div class="grade-meter-title">Mot betyg E</div>
+          <div class="grade-meter-sub">${g.eReady?'Redo!':'Övning behövs'} — ${tp.eD}/${tp.eT} E-uppgifter</div>
+        </div>
+      </div>
+      <div class="grade-bar"><div class="grade-bar-fill fill-e" style="width:${g.ePct}%"></div></div>
+      <div class="grade-pct"><strong>${g.ePct}%</strong> — Uppskattade <strong>${g.estE}</strong> av ~33 E-poäng</div>
+      ${g.ePct<70?`<div class="grade-tip tip-e">Fokusera på E-uppgifterna i varje kapitel. De ger grunden!</div>`:''}
+    </div>
+    <div class="grade-meter">
+      <div class="grade-meter-header">
+        <div class="grade-letter gl-c">C</div>
+        <div>
+          <div class="grade-meter-title">Mot betyg C</div>
+          <div class="grade-meter-sub">${g.ecPct>=70?'Redo!':'Övning behövs'} — ${tp.eD+tp.cD}/${tp.eT+tp.cT} E+C</div>
+        </div>
+      </div>
+      <div class="grade-bar"><div class="grade-bar-fill fill-c" style="width:${g.ecPct}%"></div></div>
+      <div class="grade-pct"><strong>${g.ecPct}%</strong> — Uppskattade <strong>${g.estE+g.estC}</strong> av ~64 E+C-poäng</div>
+      ${g.ecPct<70&&g.ePct>=50?`<div class="grade-tip tip-c">Bra E-nivå! Börja med C-uppgifterna nu.</div>`:''}
+    </div>
+    <div class="grade-meter">
+      <div class="grade-meter-header">
+        <div class="grade-letter gl-a">A</div>
+        <div>
+          <div class="grade-meter-title">Mot betyg A</div>
+          <div class="grade-meter-sub">${g.aReady?'Redo!':'Övning behövs'} — ${tp.done}/${tp.total} alla</div>
+        </div>
+      </div>
+      <div class="grade-bar"><div class="grade-bar-fill fill-a" style="width:${g.allPct}%"></div></div>
+      <div class="grade-pct"><strong>${g.allPct}%</strong> — Uppskattade <strong>${g.estTotal}</strong> av ~80 poäng</div>
+      ${g.allPct<70&&g.ecPct>=50?`<div class="grade-tip tip-a">Bra grund! A-uppgifterna ger de sista poängen.</div>`:''}
+    </div>
+  </div>
+
+  <div style="max-width:1200px;margin:0 auto">
+    <h3 style="color:var(--text-bright);margin-bottom:16px;font-size:1rem">&#127903; Dina banor</h3>
+    ${renderMapGrid()}
+  </div>`;
+}
+
+// --- RENDER MAP ---
+function renderMap(){
+  return `
+  <div style="max-width:1200px;margin:0 auto">
+    ${renderProfileHero(false)}
+    <h2 style="color:var(--text-bright);margin-bottom:4px;font-size:1.3rem">&#127903; Välj bana</h2>
+    <p style="color:var(--text-dim);font-size:.85rem;margin-bottom:24px">12 ämnesområden — sorterade efter provvikt. Börja uppifrån!</p>
+    ${renderMapGrid()}
+  </div>`;
+}
+
+function renderMapGrid(){
+  // Sort by provvikt descending
+  const sorted = [...chapters].sort((a,b)=>(PROV_VIKT[b.id]||0)-(PROV_VIKT[a.id]||0));
+
+  return `<div class="game-map">${sorted.map(ch=>{
+    const p = getChapterProgress(ch.id);
+    const pct = p.total>0?Math.round(100*p.done/p.total):0;
+    const vikt = PROV_VIKT[ch.id]||0;
+    const viktPct = Math.round(100*vikt/MAX_VIKT);
+    const completed = pct===100;
+    const xpTotal = ch.problems.reduce((s,pr)=>s+(pr.level==='E'?XP_E:pr.level==='C'?XP_C:XP_A),0);
+
+    // Stars: 1 for >50%, 2 for >80%, 3 for 100%
+    const stars = pct>=100?3:pct>=80?2:pct>=50?1:0;
+
+    // Stage status
+    const eUnlocked = true;
+    const cUnlocked = isStageUnlocked(ch.id,'C');
+    const aUnlocked = isStageUnlocked(ch.id,'A');
+    const eDone = p.eT>0&&p.eD===p.eT;
+    const cDone = p.cT>0&&p.cD===p.cT;
+    const aDone = p.aT>0&&p.aD===p.aT;
+
+    // Circumference for progress ring
+    const r=15, circ=2*Math.PI*r;
+
+    const gradeClass = aDone?'grade-a':cDone?'grade-c':eDone?'grade-e':'';
+    return `<div class="level-node ${completed?'completed':''} ${gradeClass}" onclick="showPage('chapter',${ch.id})">
+      <div class="level-header">
+        <div class="level-number">${CH_ICONS[ch.id]||ch.id}</div>
+        <div>
+          <div class="level-title">${ch.title}</div>
+          <div class="level-subtitle">~${vikt}p per prov</div>
+        </div>
+      </div>
+      <div class="level-weight">
+        <span>Provvikt</span>
+        <div class="level-weight-bar"><div class="level-weight-fill" style="width:${viktPct}%"></div></div>
+        <span>${Math.round(vikt/TOTAL_PROV_POANG*100)}%</span>
+      </div>
+      <div class="level-stages">
+        <div class="stage-pill stage-e ${eDone?'complete':''}">E: ${p.eD}/${p.eT}</div>
+        <div class="stage-pill stage-c ${cDone?'complete':!cUnlocked?'locked':''}">${cUnlocked?`C: ${p.cD}/${p.cT}`:'🔒 C'}</div>
+        <div class="stage-pill stage-a ${aDone?'complete':!aUnlocked?'locked':''}">${aUnlocked?`A: ${p.aD}/${p.aT}`:'🔒 A'}</div>
+      </div>
+      <div class="level-progress">
+        <div class="progress-ring-wrap">
+          <svg width="38" height="38">
+            <circle class="progress-ring-bg" cx="19" cy="19" r="${r}"/>
+            <circle class="progress-ring-fill" cx="19" cy="19" r="${r}"
+              style="stroke:${completed?'var(--neon-green)':'var(--neon-blue)'};stroke-dasharray:${circ};stroke-dashoffset:${circ-(circ*pct/100)}"/>
+          </svg>
+          <div class="progress-ring-text">${pct}%</div>
+        </div>
+        <div class="level-progress-info">
+          <strong>${p.done}/${p.total}</strong> uppgifter<br>
+          <span style="font-size:.7rem">${p.done>0&&pct<100?'Fortsätt!':'Börja här'}</span>
+        </div>
+      </div>
+      <div class="level-stars">
+        ${[1,2,3].map(s=>`<span class="level-star ${s<=stars?'earned':''}">&#11088;</span>`).join('')}
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// --- RENDER CHAPTER ---
+function renderChapter(chId){
+  const ch = chapters.find(c=>c.id===chId);
+  if(!ch) return '<p>Kapitel hittades inte.</p>';
+  const p = getChapterProgress(chId);
+  const vikt = PROV_VIKT[chId]||0;
+
+  // Determine which stage tab is active
+  if(!isStageUnlocked(chId,currentStage)){
+    currentStage = 'E';
+  }
+
+  const eUnlocked = true;
+  const cUnlocked = isStageUnlocked(chId,'C');
+  const aUnlocked = isStageUnlocked(chId,'A');
+
+  // Filter problems by stage
+  const stageProblems = ch.problems.map((pr,i)=>({...pr,idx:i})).filter(pr=>pr.level===currentStage);
+
+  // Problems HTML
+  const problemsHtml = stageProblems.map((pr, stageIdx)=>{
+    const done = isDone(chId, pr.idx+1);
+    const xp = pr.level==='E'?XP_E:pr.level==='C'?XP_C:XP_A;
+    const qNum = pr.idx+1;
+    const needsCalc = CALC_NEEDED[chId] && CALC_NEEDED[chId].has(pr.num);
+    const calcHtml = needsCalc
+      ? `<span class="calc-tag med"><span class="calc-full">Med miniräknare</span><span class="calc-short">Med</span></span>`
+      : `<span class="calc-tag utan"><span class="calc-full">Utan miniräknare</span><span class="calc-short">Utan</span></span>`;
+    const ytSvg = `<svg viewBox="0 0 24 24"><path d="M21.6 7.2s-.2-1.6-1-2.3c-.9-1-1.9-1-2.4-1C15 3.6 12 3.6 12 3.6s-3 0-6.2.3c-.5.1-1.5.1-2.4 1-.7.7-1 2.3-1 2.3S2 9.1 2 10.9v1.7c0 1.9.2 3.7.2 3.7s.2 1.6 1 2.3c.9 1 2.1 1 2.6 1.1C7.7 19.9 12 20 12 20s3 0 6.2-.3c.5-.1 1.5-.1 2.4-1 .7-.7 1-2.3 1-2.3s.2-1.9.2-3.7v-1.7c.2-1.9 0-3.8 0-3.8zM9.9 15.4V8.7l6.5 3.4-6.5 3.3z"/></svg>`;
+    const videoBtn = (pr.videos && pr.videos.length > 0)
+      ? pr.videos.map((vid,vi) => `<button class="problem-video-btn" onclick="event.stopPropagation();openVideoById('${vid}')" title="Se video ${vi+1}">${ytSvg}<span class="calc-full">Video${pr.videos.length>1?' '+(vi+1):''}</span></button>`).join('')
+      : '';
+    // Build slides: main + variants
+    const slides = [{text:pr.text, solution:pr.solution}];
+    if(pr.variants && pr.variants.length>0) slides.push(...pr.variants);
+    const hasV = slides.length > 1;
+    const vKey = `${chId}_${qNum}`;
+    const curV = activeVariant[vKey]||0;
+
+    const navHtml = hasV ? `<span class="variant-nav-inline">
+      <button onclick="goVariant(${chId},${qNum},${curV-1})"${curV===0?' disabled':''}>&#8249;</button>
+      <span class="vn-count">${curV+1} / ${slides.length}</span>
+      <button onclick="goVariant(${chId},${qNum},${curV+1})"${curV===slides.length-1?' disabled':''}>&#8250;</button>
+    </span>` : '';
+
+    const slidesHtml = slides.map((sl,vi)=>`<div class="variant-slide">
+        <div class="problem-text">${sl.text}</div>
+        <div class="problem-actions">
+          <button class="btn btn-solution" onclick="toggleSolution(${chId},${qNum},${vi})">&#128161; Visa lösning</button>
+          ${done
+            ? `<button class="btn btn-done">&#10004; Klar</button>
+               <button class="btn btn-undo" onclick="markUndone(${chId},${qNum})">&#10060; Ångra</button>`
+            : `<button class="btn btn-sure" onclick="markDone(${chId},${qNum},'${pr.level}')">Kan säkert</button>`
+          }
+        </div>
+        <div class="solution-box" id="sol_${chId}_${qNum}_${vi}">${sl.solution}</div>
+      </div>`).join('');
+
+    return `<div class="problem-card ${done?'solved':''}" id="problem_${chId}_${qNum}">
+      <div class="problem-header">
+        <span class="problem-level level-${pr.level.toLowerCase()}">${pr.level}</span>
+        <span class="problem-num">Uppgift ${stageIdx+1}</span>
+        ${navHtml}
+        <span class="problem-xp${hasV?'':' ml-auto'}">${done?'✓':'+'} ${xp} XP</span>
+        ${videoBtn}
+        ${calcHtml}
+      </div>
+      <div class="variant-swipe" data-ch="${chId}" data-q="${qNum}">
+        <div class="variant-track" style="transform:translateX(-${curV*100}%)">${slidesHtml}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  return `<div class="chapter-view">
+    <div class="chapter-hero animate-in">
+      <div class="chapter-hero-top">
+        <button class="chapter-back" onclick="showPage('map')">&#8592;</button>
+        <div>
+          <h2>${CH_ICONS[chId]||''} ${ch.title}</h2>
+          <div class="chapter-hero-sub">~${vikt}p per prov &middot; ${p.done}/${p.total} klara &middot; ${ch.tags.join(' & ')}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stage-tabs animate-in" style="animation-delay:.1s">
+      <div class="stage-tab ${currentStage==='E'?'active-e':''}" onclick="switchStage(${chId},'E')" id="stab-${chId}-E">
+        <div class="stage-tab-level" style="color:var(--grade-e)">E</div>
+        <div class="stage-tab-label">Grundläggande</div>
+        <div class="stage-tab-count">${p.eD}/${p.eT} klara</div>
+        ${isQuizPassed(chId,'E')?'<div class="quiz-passed-indicator">&#9989; Quiz klar</div>':''}
+      </div>
+      <div class="stage-tab ${currentStage==='C'?'active-c':''} ${!cUnlocked?'locked-tab':''}" onclick="${cUnlocked?`switchStage(${chId},'C')`:'lockedMsg()'}" id="stab-${chId}-C">
+        ${cUnlocked
+          ?`<div class="stage-tab-level" style="color:var(--grade-c)">C</div>
+            <div class="stage-tab-label">Mellannivå</div>
+            <div class="stage-tab-count">${p.cD}/${p.cT} klara</div>
+            ${isQuizPassed(chId,'C')?'<div class="quiz-passed-indicator">&#9989; Quiz klar</div>':''}`
+          :`<div class="lock-big">🔒</div>
+            <div class="lock-req">${(p.eT>0&&p.eD===p.eT)?'Klara E-quizzen (80%)<br>för att låsa upp':'Klara alla E-uppgifter<br>+ quiz för att låsa upp'}</div>`}
+      </div>
+      <div class="stage-tab ${currentStage==='A'?'active-a':''} ${!aUnlocked?'locked-tab':''}" onclick="${aUnlocked?`switchStage(${chId},'A')`:'lockedMsg()'}" id="stab-${chId}-A">
+        ${aUnlocked
+          ?`<div class="stage-tab-level" style="color:var(--grade-a)">A</div>
+            <div class="stage-tab-label">Avancerat</div>
+            <div class="stage-tab-count">${p.aD}/${p.aT} klara</div>
+            ${isQuizPassed(chId,'A')?'<div class="quiz-passed-indicator">&#9989; Quiz klar</div>':''}`
+          :`<div class="lock-big">🔒</div>
+            <div class="lock-req">${!cUnlocked?'Klara E + quiz först':(p.cT>0&&p.cD===p.cT)?'Klara C-quizzen (80%)<br>för att låsa upp':'Klara alla C-uppgifter<br>+ quiz för att låsa upp'}</div>`}
+      </div>
+    </div>
+
+    ${currentStage==='E'?`
+      <div class="theory-section animate-in" style="animation-delay:.15s">
+        ${ch.theory}
+      </div>
+    `:''}
+
+    <div class="animate-in" style="animation-delay:.25s">
+      <h4 style="color:var(--text-bright);margin-bottom:14px;font-size:.95rem">
+        ${currentStage==='E'?'&#127793; E-uppgifter — Grundläggande':currentStage==='C'?'&#127775; C-uppgifter — Mellannivå':'&#128142; A-uppgifter — Avancerat'}
+      </h4>
+      ${problemsHtml}
+
+      ${(()=>{
+        const allDone = canTakeQuiz(chId, currentStage);
+        const passed = isQuizPassed(chId, currentStage);
+        const hasQuiz = quizzes[chId] && quizzes[chId][currentStage];
+        if(!hasQuiz) return '';
+        const nextS = currentStage==='E'?'C':currentStage==='C'?'A':null;
+        const unlockMsg = nextS ? ' och låsa upp '+nextS+'-nivån' : '';
+        if(passed) return '<div class="quiz-gate" style="border-color:rgba(34,197,94,.3);background:linear-gradient(135deg,rgba(34,197,94,.08),rgba(34,197,94,.04))"><h3 style="color:var(--neon-green)">&#9989; Quiz godkänt!</h3><p style="color:var(--neon-green)">Du har bevisat att du behärskar '+currentStage+'-nivån.'+(nextS&&isStageUnlocked(chId,nextS)?' '+nextS+'-nivån är upplåst!':'')+'</p><button class="quiz-start-btn" style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:var(--neon-green)" onclick="startQuiz('+chId+',\''+currentStage+'\')">Gör quizzen igen</button></div>';
+        if(!allDone) return '<div class="quiz-gate"><h3>&#128274; Quiz låst</h3><p>Markera alla '+currentStage+'-uppgifter som "Kan säkert" för att låsa upp quizzen. Klara quizzen med minst 80%'+unlockMsg+'!</p><button class="quiz-start-btn" disabled>Klara alla uppgifter först</button></div>';
+        return '<div class="quiz-gate"><h3>&#128221; Quiz: Dags att bevisa vad du kan!</h3><p>Klara minst 80% för att godkännas'+unlockMsg+'! Bonus-XP väntar.</p><button class="quiz-start-btn" onclick="startQuiz('+chId+',\''+currentStage+'\')">&#9889; Starta quiz</button></div>';
+      })()}
+    </div>
+  </div>`;
+}
+
+function switchStage(chId, stage){
+  currentStage = stage;
+  showPage('chapter', chId, stage);
+}
+
+function lockedMsg(){
+  showXpPopup('🔒','Låst! Klara alla uppgifter + quizzen.','80% rätt på quizzen krävs!');
+}
+
+// --- PROBLEM ACTIONS ---
+function toggleSolution(chId,qNum,vIdx){
+  if(vIdx===undefined) vIdx=0;
+  const box = document.getElementById(`sol_${chId}_${qNum}_${vIdx}`);
+  if(box){
+    box.classList.toggle('show');
+    if(box.classList.contains('show') && window.renderMathInElement){
+      renderMathInElement(box,{
+        delimiters:[{left:"\\[",right:"\\]",display:true},{left:"\\(",right:"\\)",display:false}],
+        throwOnError:false
+      });
+    }
+  }
+}
+
+// Variant navigation
+function goVariant(chId, qNum, vIdx){
+  const vKey = `${chId}_${qNum}`;
+  activeVariant[vKey] = vIdx;
+  // Update track transform
+  const card = document.getElementById(`problem_${chId}_${qNum}`);
+  if(!card) return;
+  const track = card.querySelector('.variant-track');
+  if(track) track.style.transform = `translateX(-${vIdx*100}%)`;
+  // Update header nav
+  const nav = card.querySelector('.variant-nav-inline');
+  if(nav){
+    const count = card.querySelectorAll('.variant-slide').length;
+    const btns = nav.querySelectorAll('button');
+    const lbl = nav.querySelector('.vn-count');
+    if(btns[0]){ btns[0].setAttribute('onclick',`goVariant(${chId},${qNum},${vIdx-1})`); btns[0].disabled = vIdx===0; }
+    if(btns[1]){ btns[1].setAttribute('onclick',`goVariant(${chId},${qNum},${vIdx+1})`); btns[1].disabled = vIdx===count-1; }
+    if(lbl) lbl.textContent = `${vIdx+1} / ${count}`;
+  }
+  // Re-render KaTeX on new slide
+  const slide = card.querySelectorAll('.variant-slide')[vIdx];
+  if(slide && window.renderMathInElement){
+    renderMathInElement(slide,{
+      delimiters:[{left:"\\[",right:"\\]",display:true},{left:"\\(",right:"\\)",display:false}],
+      throwOnError:false
+    });
+  }
+}
+
+// Touch swipe for variants
+document.addEventListener('touchstart',function(e){
+  const sw = e.target.closest('.variant-swipe');
+  if(!sw || sw.querySelectorAll('.variant-slide').length<2) return;
+  sw._touchX = e.touches[0].clientX;
+  sw._touchY = e.touches[0].clientY;
+},{passive:true});
+document.addEventListener('touchend',function(e){
+  const sw = e.target.closest('.variant-swipe');
+  if(!sw || !sw._touchX) return;
+  const dx = e.changedTouches[0].clientX - sw._touchX;
+  const dy = e.changedTouches[0].clientY - sw._touchY;
+  sw._touchX = null;
+  if(Math.abs(dx)<50 || Math.abs(dx)<Math.abs(dy)*2) return;
+  const chId = +sw.dataset.ch, qNum = +sw.dataset.q;
+  const vKey = `${chId}_${qNum}`;
+  const cur = activeVariant[vKey]||0;
+  const count = sw.querySelectorAll('.variant-slide').length;
+  if(dx<0 && cur<count-1) goVariant(chId,qNum,cur+1);
+  else if(dx>0 && cur>0) goVariant(chId,qNum,cur-1);
+},{passive:true});
+
+function markDone(chId, qNum, level){
+  if(isDone(chId,qNum)) return;
+  setDone(chId,qNum,true);
+
+  // XP reward
+  const baseXp = level==='E'?XP_E:level==='C'?XP_C:XP_A;
+  let bonus = 0;
+  let bonusMsg = '';
+
+  // Variable reward (casino psychology): 15% chance of bonus XP
+  if(Math.random() < BONUS_CHANCE){
+    bonus = Math.floor(baseXp * (0.5 + Math.random()));
+    bonusMsg = `&#127881; BONUS! +${bonus} extra XP`;
+  }
+
+  addXp(baseXp + bonus);
+
+  // Show XP popup
+  showXpPopup('&#9889;', `+${baseXp} XP`, bonusMsg);
+
+  // Flying XP orb from click position to topbar
+  const card = document.getElementById(`problem_${chId}_${qNum}`);
+  if(card){
+    const rect = card.getBoundingClientRect();
+    flyXpOrb(rect.right-40, rect.top+20, baseXp+bonus);
+  }
+
+  // Check if level completed
+  const p = getChapterProgress(chId);
+  const stageDone =
+    (level==='E' && p.eD===p.eT) ||
+    (level==='C' && p.cD===p.cT) ||
+    (level==='A' && p.aD===p.aT);
+
+  if(stageDone){
+    // Celebration confetti!
+    setTimeout(()=>{
+      if(window.confetti){
+        confetti({particleCount:80,spread:70,origin:{y:.6},colors:
+          level==='E'?['#22c55e','#16a34a','#4ade80']:
+          level==='C'?['#facc15','#eab308','#fde047']:
+          ['#a855f7','#7c3aed','#c084fc']
+        });
+      }
+    },300);
+
+    // Bonus XP for completing a stage
+    const stageBonus = level==='E'?20:level==='C'?40:80;
+    addXp(stageBonus);
+    setTimeout(()=>{
+      showXpPopup('&#127942;',`${level}-nivå klar! +${stageBonus} XP`,
+        level==='E'&&isStageUnlocked(chId,'C')?'C-nivån är nu upplåst!':
+        level==='C'&&isStageUnlocked(chId,'A')?'A-nivån är nu upplåst!':
+        'Fantastiskt jobbat!');
+    },1500);
+
+    // Detect new stage unlock → schedule explosion
+    const nextStage = level==='E'?'C':level==='C'?'A':null;
+    if(nextStage && isStageUnlocked(chId,nextStage)){
+      const uKey = `unlock_seen_${chId}_${nextStage}`;
+      if(!lsGet(uKey,false)){
+        lsSet(uKey,true);
+        pendingUnlock = {chId, stage:nextStage};
+      }
+    }
+  }
+
+  // Check if entire chapter completed
+  if(p.done+1===p.total){
+    setTimeout(()=>{
+      if(window.confetti){
+        confetti({particleCount:150,spread:100,origin:{y:.5}});
+        setTimeout(()=>confetti({particleCount:80,spread:60,origin:{x:.2,y:.6}}),200);
+        setTimeout(()=>confetti({particleCount:80,spread:60,origin:{x:.8,y:.6}}),400);
+      }
+    },2000);
+  }
+
+  // Re-render
+  render();
+
+  // Play unlock explosion AFTER render (so the tab exists in DOM)
+  if(pendingUnlock){
+    setTimeout(()=>playPendingUnlock(),600);
+  }
+
+  // Check achievements
+  setTimeout(()=>checkAchievements(),1000);
+}
+
+function markUndone(chId,qNum){
+  setDone(chId,qNum,false);
+  // Remove XP (approximate)
+  const ch = chapters.find(c=>c.id===chId);
+  if(ch){
+    const pr = ch.problems[qNum-1];
+    if(pr){
+      const xp = pr.level==='E'?XP_E:pr.level==='C'?XP_C:XP_A;
+      const cur = getXp();
+      lsSet("xp", Math.max(0, cur-xp));
+    }
+  }
+  render();
+}
+
+// --- XP POPUP & FLOAT ---
+let xpPopupTimer;
+function showXpPopup(icon, text, bonus){
+  const el = document.getElementById('xpPopup');
+  document.getElementById('xpPopupText').innerHTML = text;
+  document.getElementById('xpPopupBonus').innerHTML = bonus;
+  el.querySelector('.xp-popup-icon').innerHTML = icon;
+  el.classList.add('show');
+  clearTimeout(xpPopupTimer);
+  xpPopupTimer = setTimeout(()=>el.classList.remove('show'), 2500);
+}
+
+function floatXp(x,y,text){
+  const el = document.createElement('div');
+  el.className = 'xp-float';
+  el.textContent = text;
+  el.style.left = x+'px';
+  el.style.top = y+'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1200);
+}
+
+// --- VIDEO ---
+function openVideo(videoId){
+  const overlay = document.getElementById('videoOverlay');
+  const iframe = document.getElementById('videoIframe');
+  iframe.src = 'https://www.youtube-nocookie.com/embed/'+videoId+'?autoplay=1&rel=0';
+  overlay.classList.add('active');
+  document.body.style.overflow='hidden';
+}
+function closeVideo(){
+  const overlay = document.getElementById('videoOverlay');
+  document.getElementById('videoIframe').src='';
+  overlay.classList.remove('active');
+  document.body.style.overflow='';
+}
+
+function openVideoById(vid){
+  window.open('https://www.youtube.com/watch?v='+vid, '_blank');
+}
+
+// --- STREAK MODAL ---
+function showStreakModal(){
+  const s = getStreak();
+  document.getElementById('streakBigNum').textContent = s;
+  document.getElementById('streakMsg').textContent =
+    s===0?'Börja idag — klara en uppgift!':
+    s<3?'Bra start! Fortsätt varje dag.':
+    s<7?'Stark streak! Sikta på en vecka.':
+    s<14?'En hel vecka! Du bygger riktigt bra vanor.':
+    s<30?'Imponerande! Du är en maskin.':
+    'LEGENDÄR streak! Du är ostoppbar!';
+  document.getElementById('streakModal').classList.add('active');
+}
+function closeStreakModal(){
+  document.getElementById('streakModal').classList.remove('active');
+}
+
+// --- RENDER STATS PAGE ---
+function renderStatsPage(){
+  const sorted = [...chapters].sort((a,b)=>(PROV_VIKT[b.id]||0)-(PROV_VIKT[a.id]||0));
+  const maxP = MAX_VIKT;
+
+  return `<div style="max-width:1100px;margin:0 auto">
+    <h2 style="color:var(--text-bright);margin-bottom:4px">&#128202; Provstatistik</h2>
+    <p style="color:var(--text-dim);font-size:.85rem;margin-bottom:24px">
+      Baserat på analys av 7 nationella prov (2013–2019).<br><br>
+      <strong style="color:var(--text-bright)">Så läser du staplarna:</strong> Den <strong style="color:var(--text)">övre, bredare stapeln</strong> visar hur stor del av provets frågor som brukar handla om varje ämne (uppdelat i E-, C- och A-nivå). Den <strong style="color:var(--neon-blue)">undre, smalare stapeln</strong> visar dina framsteg — ju mer du övat, desto längre fyller den på. Sikta på att matcha den övre!
+    </p>
+    <div class="card" style="margin-bottom:24px;padding:20px">
+      <div class="card-title">Provvikt & dina framsteg</div>
+      <div class="stats-rows">
+        ${sorted.map(ch=>{
+          const v=PROV_VIKT[ch.id]||0;
+          const pct=Math.round(100*v/TOTAL_PROV_POANG);
+          const eP={1:6.9,2:.9,3:2.6,4:2.9,5:4.7,6:2.7,7:1.7,8:3.1,9:2.1,10:.3,11:3.1,12:1.3}[ch.id]||0;
+          const cP={1:2.6,2:2,3:3.1,4:4.9,5:4.4,6:2,7:1,8:3.9,9:1.9,10:1,11:1.9,12:.9}[ch.id]||0;
+          const aP={1:.7,2:.1,3:.6,4:3.3,5:4.9,6:.6,7:.6,8:3.6,9:.6,10:1.4,11:.7,12:1.3}[ch.id]||0;
+          const total=eP+cP+aP;
+          const ePct=Math.round(100*eP/total);
+          const cPct=Math.round(100*cP/total);
+          const prog=getChapterProgress(ch.id);
+          const ppct=prog.total>0?Math.round(100*prog.done/prog.total):0;
+          const barW=Math.round(100*v/maxP);
+          return `<div class="stats-row" onclick="showPage('chapter',${ch.id})">
+            <div class="stats-row-head">
+              <span class="stats-row-name">${CH_ICONS[ch.id]||''} ${ch.title.split(':')[0].split('&')[0].trim()}</span>
+              <span class="stats-row-pts">~${v}p (${pct}%) <span style="color:${ppct===100?'var(--neon-green)':ppct>0?'var(--neon-blue)':'var(--text-dim)'}"> &middot; ${ppct}% klar</span></span>
+            </div>
+            <div class="stats-row-bars">
+              <div class="stats-exam-bar" style="width:${barW}%">
+                <div class="stats-exam-e" style="width:${ePct}%"></div>
+                <div class="stats-exam-c" style="width:${cPct}%"></div>
+                <div class="stats-exam-a" style="width:${100-ePct-cPct}%"></div>
+              </div>
+              <div class="stats-prog-wrap" style="width:${barW}%">
+                <div class="stats-prog-fill ${ppct===100?'stats-prog-done':''}" style="width:${ppct}%">
+                  ${ppct>0&&ppct<100?'<div class="stats-prog-marker"></div>':''}
+                </div>
+              </div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div style="display:flex;gap:14px;justify-content:center;margin-top:16px;font-size:.7rem;flex-wrap:wrap">
+        <span style="color:var(--grade-e)">&#9632; E-frågor</span>
+        <span style="color:var(--grade-c)">&#9632; C-frågor</span>
+        <span style="color:var(--grade-a)">&#9632; A-frågor</span>
+        <span style="color:var(--neon-blue)">&#9632; Dina framsteg</span>
+        <span style="color:var(--neon-red)">| Du är här</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Topp-ämnen efter provvikt</div>
+      <p style="font-size:.82rem;color:var(--text-dim);margin-bottom:16px">Dessa ämnen är viktigast — lägg mest tid här!</p>
+      ${sorted.slice(0,5).map((ch,i)=>{
+        const v=PROV_VIKT[ch.id]||0;
+        const pct=Math.round(100*v/TOTAL_PROV_POANG);
+        const prog=getChapterProgress(ch.id);
+        const ppct=prog.total>0?Math.round(100*prog.done/prog.total):0;
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+          <span style="font-size:1.2rem;width:30px;text-align:center">${i===0?'&#129351;':i===1?'&#129352;':i===2?'&#129353;':'&#128200;'}</span>
+          <div style="flex:1">
+            <div style="font-size:.85rem;font-weight:600;color:var(--text-bright)">${ch.title}</div>
+            <div style="font-size:.72rem;color:var(--text-dim)">~${v}p per prov (${pct}% av provet)</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:.8rem;font-weight:700;color:${ppct===100?'var(--neon-green)':'var(--neon-blue)'}">${ppct}%</div>
+            <div style="font-size:.65rem;color:var(--text-dim)">${prog.done}/${prog.total}</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+// --- RENDER EXAM INFO ---
+function renderExamInfo(){
+  return `<div style="max-width:900px;margin:0 auto">
+    <h2 style="color:var(--text-bright);margin-bottom:4px">&#128214; Så funkar provet</h2>
+    <p style="color:var(--text-dim);font-size:.85rem;margin-bottom:24px">Allt du behöver veta om nationella provet i matematik för årskurs 9</p>
+
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">Provstruktur</div>
+      <p style="font-size:.85rem;color:var(--text);margin-bottom:14px">
+        Provet består av tre delar som skrivs under två pass.
+      </p>
+      <div class="exam-parts">
+        <div class="exam-part" style="border-left-color:var(--neon-purple)">
+          <h4 style="color:var(--neon-purple)">Pass 1: Delprov B + C (80 min)</h4>
+          <ul>
+            <li><strong>Delprov B:</strong> Korta svar, utan miniräknare (~15–20 uppgifter)</li>
+            <li><strong>Delprov C:</strong> En stor undersökande uppgift med miniräknare</li>
+            <li>Hjälp: Formelblad och linjal (bara för C)</li>
+            <li>Inga digitala verktyg på Delprov B!</li>
+          </ul>
+        </div>
+        <div class="exam-part" style="border-left-color:var(--neon-pink)">
+          <h4 style="color:var(--neon-pink)">Pass 2: Delprov D (100 min)</h4>
+          <ul>
+            <li><strong>Delprov D:</strong> Fullständiga lösningar krävs</li>
+            <li>Hjälp: Miniräknare, formelblad och linjal</li>
+            <li>~10–12 uppgifter, många med deluppgifter</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">Ungefärliga betygsgränser</div>
+      <p style="font-size:.82rem;color:var(--text);margin-bottom:12px">Provet har runt <strong>80 poäng</strong> totalt.</p>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px">
+        ${[['E','~22p','var(--grade-e)'],['D','~32p','var(--neon-blue)'],['C','~42p','var(--grade-c)'],['B','~52p','var(--neon-orange)'],['A','~62p','var(--grade-a)']].map(([g,p,c])=>`
+          <div style="text-align:center;padding:14px 8px;background:var(--bg-surface);border-radius:var(--radius);border:1px solid rgba(255,255,255,.06)">
+            <div style="font-size:1.4rem;font-weight:900;color:${c}">${g}</div>
+            <div style="font-size:.75rem;color:var(--text-dim);margin-top:4px">${p}</div>
+          </div>`).join('')}
+      </div>
+      <p style="font-size:.72rem;color:var(--text-dim);font-style:italic">Gränserna bestäms av Skolverket efter varje prov och varierar något.</p>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">Poängfördelning</div>
+      <div style="display:flex;gap:12px;margin:12px 0;flex-wrap:wrap">
+        <div style="flex:1;min-width:100px;padding:16px;background:var(--grade-e-bg);border-radius:var(--radius);text-align:center;border:1px solid rgba(34,197,94,.15)">
+          <div style="font-size:1.8rem;font-weight:800;color:var(--grade-e)">~33</div>
+          <div style="font-size:.75rem;color:var(--grade-e)">E-poäng</div>
+        </div>
+        <div style="flex:1;min-width:100px;padding:16px;background:var(--grade-c-bg);border-radius:var(--radius);text-align:center;border:1px solid rgba(250,204,21,.15)">
+          <div style="font-size:1.8rem;font-weight:800;color:var(--grade-c)">~31</div>
+          <div style="font-size:.75rem;color:var(--grade-c)">C-poäng</div>
+        </div>
+        <div style="flex:1;min-width:100px;padding:16px;background:var(--grade-a-bg);border-radius:var(--radius);text-align:center;border:1px solid rgba(168,85,247,.15)">
+          <div style="font-size:1.8rem;font-weight:800;color:var(--grade-a)">~16</div>
+          <div style="font-size:.75rem;color:var(--grade-a)">A-poäng</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px">&#128161; Strategitips för provdagen</div>
+      <div class="tip-box">
+        <strong>Tips 1: Visa alltid ditt arbete i Delprov C och D</strong>
+        <p>Poäng ges för metod, inte bara svar. Skriv tydliga uträkningar — även om svaret blir fel kan du få poäng för korrekt metod.</p>
+      </div>
+      <div class="tip-box">
+        <strong>Tips 2: Börja med de lätta uppgifterna</strong>
+        <p>I Delprov B är de första uppgifterna ofta lättast. Samla ihop säkra E-poäng först!</p>
+      </div>
+      <div class="tip-box">
+        <strong>Tips 3: Disponera tiden</strong>
+        <p>80 min för B+C och 100 min för D. Fastna inte på en svår uppgift — gå vidare och kom tillbaka.</p>
+      </div>
+      <div class="tip-box">
+        <strong>Tips 4: Delprov C är värt ~12 poäng!</strong>
+        <p>Den stora undersökande uppgiften är värd ca 15% av provet. Även om du inte klarar allt — första delfrågorna är ofta på E-nivå.</p>
+      </div>
+    </div>
+  </div>`;
+}
+
+// --- RENDER PROGRESS PAGE ---
+function renderProgressPage(){
+  const tp = getTotalProgress();
+  const g = getGradeReadiness();
+  const xp = getXp();
+  const level = getLevel();
+  const nextLevelXp = level * XP_PER_LEVEL;
+  const levelPct = Math.round(100*(xp%XP_PER_LEVEL)/XP_PER_LEVEL);
+
+  return `<div style="max-width:1100px;margin:0 auto">
+    <h2 style="color:var(--text-bright);margin-bottom:4px">&#127942; Din färdväg</h2>
+    <p style="color:var(--text-dim);font-size:.85rem;margin-bottom:24px">Se hur långt du har kommit</p>
+
+    <div class="dash-grid" style="margin-bottom:24px">
+      <div class="stat-card">
+        <div class="stat-value" style="color:var(--neon-purple)">${xp}</div>
+        <div class="stat-label">Total XP</div>
+        <div style="margin-top:10px">
+          <div style="font-size:.7rem;color:var(--text-dim);margin-bottom:4px">Level ${level} → ${level+1} (${xp%XP_PER_LEVEL}/${XP_PER_LEVEL})</div>
+          <div class="grade-bar"><div class="grade-bar-fill fill-a" style="width:${levelPct}%"></div></div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${Math.round(100*tp.done/Math.max(1,tp.total))}%</div>
+        <div class="stat-label">Total progress</div>
+        <div style="margin-top:10px">
+          <div class="grade-bar"><div class="grade-bar-fill" style="width:${Math.round(100*tp.done/Math.max(1,tp.total))}%;background:var(--neon-blue)"></div></div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color:var(--neon-orange)">${getStreak()}</div>
+        <div class="stat-label">Dagars streak</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:24px">
+      <div class="card-title">Per kapitel</div>
+      <div class="progress-grid">
+        ${chapters.map(ch=>{
+          const p = getChapterProgress(ch.id);
+          const pct = p.total>0?Math.round(100*p.done/p.total):0;
+          return `<div class="progress-card" onclick="showPage('chapter',${ch.id})">
+            <div class="progress-card-title">${CH_ICONS[ch.id]||''} ${ch.title}</div>
+            <div style="display:flex;gap:8px;margin-bottom:8px">
+              <span style="font-size:.7rem;color:var(--grade-e)">E:${p.eD}/${p.eT}</span>
+              <span style="font-size:.7rem;color:var(--grade-c)">C:${p.cD}/${p.cT}</span>
+              <span style="font-size:.7rem;color:var(--grade-a)">A:${p.aD}/${p.aT}</span>
+            </div>
+            <div class="grade-bar"><div class="grade-bar-fill" style="width:${pct}%;background:${pct===100?'var(--neon-green)':'var(--neon-blue)'}"></div></div>
+            <div style="font-size:.7rem;color:var(--text-dim);margin-top:4px">${pct}% klar</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:24px">
+      <button class="btn" style="background:rgba(239,68,68,.1);color:var(--neon-red);border:1px solid rgba(239,68,68,.2);padding:10px 24px" onclick="resetAll()">
+        Återställ alla framsteg
+      </button>
+    </div>
+  </div>`;
+}
+
+function resetAll(){
+  const code=Math.floor(1000+Math.random()*9000);
+  const input=prompt('VARNING: Alla framsteg, XP, streak och cosmetics nollställs. Detta kan INTE ångras.\n\nSkriv in koden '+code+' för att bekräfta:');
+  if(input && parseInt(input)===code){
+    Object.keys(localStorage).forEach(k=>{
+      if(k.startsWith(LS)) localStorage.removeItem(k);
+    });
+    showPage('dashboard');
+    render();
+  }
+}
+
+// --- KEYBOARD ---
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape'){
+    closeVideo();
+    closeStreakModal();
+  }
+});
+
+// --- QUIZ SYSTEM ---
+let activeQuiz = null; // {chId, stage, questions, current, score, answers}
+
+function isQuizPassed(chId, stage){
+  return lsGet(`quiz_${chId}_${stage}`, false);
+}
+function setQuizPassed(chId, stage){
+  lsSet(`quiz_${chId}_${stage}`, true);
+}
+
+function canTakeQuiz(chId, stage){
+  const p = getChapterProgress(chId);
+  if(stage==='E') return p.eT>0 && p.eD===p.eT;
+  if(stage==='C') return p.cT>0 && p.cD===p.cT;
+  if(stage==='A') return p.aT>0 && p.aD===p.aT;
+  return false;
+}
+
+function startQuiz(chId, stage){
+  const q = quizzes[chId];
+  if(!q || !q[stage]) return;
+  const questions = [...q[stage]]; // copy
+  activeQuiz = { chId, stage, questions, current:0, score:0, answers:[] };
+  currentPage = 'quiz';
+  render();
+  window.scrollTo(0,0);
+}
+
+function renderQuiz(){
+  if(!activeQuiz) return '<p>Inget quiz aktivt.</p>';
+  const { chId, stage, questions, current, score } = activeQuiz;
+  const ch = chapters.find(c=>c.id===chId);
+
+  // All questions answered?
+  if(current >= questions.length){
+    return renderQuizResults();
+  }
+
+  const q = questions[current];
+  const pct = Math.round(100*current/questions.length);
+
+  return `<div class="chapter-view">
+    <div class="chapter-hero animate-in">
+      <div class="chapter-hero-top">
+        <button class="chapter-back" onclick="exitQuiz()">&#8592;</button>
+        <div>
+          <h2>&#128221; Quiz: ${ch?ch.title:''} (${stage})</h2>
+          <div class="chapter-hero-sub">Fråga ${current+1} av ${questions.length} &middot; Poäng: ${score}/${current}</div>
+        </div>
+      </div>
+      <div class="grade-bar" style="margin-top:12px"><div class="grade-bar-fill fill-${stage.toLowerCase()}" style="width:${pct}%"></div></div>
+    </div>
+
+    <div class="quiz-container animate-in" style="animation-delay:.1s">
+      <div class="quiz-question">
+        <div class="quiz-question-text">${q.text}</div>
+        <div class="quiz-input-row">
+          <input type="number" class="quiz-input" id="quizAnswer" placeholder="Ditt svar..."
+            onkeydown="if(event.key==='Enter')checkQuizAnswer()" autofocus>
+          <button class="quiz-check-btn" id="quizCheckBtn" onclick="checkQuizAnswer()">Svara</button>
+        </div>
+        <div class="quiz-feedback" id="quizFeedback"></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function checkQuizAnswer(){
+  if(!activeQuiz) return;
+  const input = document.getElementById('quizAnswer');
+  const btn = document.getElementById('quizCheckBtn');
+  const feedback = document.getElementById('quizFeedback');
+  if(!input || !btn) return;
+
+  const userAnswer = parseFloat(input.value.replace(',','.'));
+  if(isNaN(userAnswer)){ input.focus(); return; }
+
+  const q = activeQuiz.questions[activeQuiz.current];
+  const tolerance = q.tolerance || 0;
+  const correct = Math.abs(userAnswer - q.answer) <= tolerance;
+
+  // Disable input
+  input.disabled = true;
+  btn.disabled = true;
+
+  if(correct){
+    activeQuiz.score++;
+    input.classList.add('correct');
+    feedback.className = 'quiz-feedback show correct';
+    const encouragements = ['Rätt! Snyggt jobbat!','Korrekt! Du har koll!','Helt rätt! Starkt!','Bingo! Bra jobbat!','Perfekt! Du äger det!'];
+    feedback.innerHTML = '&#10004; ' + encouragements[Math.floor(Math.random()*encouragements.length)];
+
+    // Flying XP orb animation
+    const inputRect = input.getBoundingClientRect();
+    flyXpOrb(inputRect.left + inputRect.width/2, inputRect.top, stage2xp(activeQuiz.stage));
+  } else {
+    input.classList.add('incorrect');
+    // Shake animation on wrong answer
+    const container = input.closest('.quiz-question');
+    if(container){ container.classList.add('shake'); setTimeout(()=>container.classList.remove('shake'),500); }
+    feedback.className = 'quiz-feedback show incorrect';
+    const nearMisses = ['Inte riktigt — men nära!','Nästan! Rätt svar: ','Inte helt rätt ännu. Svaret är ','Nästan där! Det var '];
+    feedback.innerHTML = `&#128170; ${nearMisses[Math.floor(Math.random()*nearMisses.length)]}<strong>${q.answer}</strong>`;
+  }
+
+  activeQuiz.answers.push({correct, userAnswer, expected:q.answer});
+
+  // Auto-advance after delay
+  setTimeout(()=>{
+    activeQuiz.current++;
+    render();
+    // Focus new input
+    setTimeout(()=>{
+      const newInput = document.getElementById('quizAnswer');
+      if(newInput) newInput.focus();
+    },100);
+  }, correct?1200:2500);
+}
+
+function stage2xp(stage){
+  return stage==='E'?XP_E:stage==='C'?XP_C:XP_A;
+}
+
+function renderQuizResults(){
+  const { chId, stage, questions, score } = activeQuiz;
+  const ch = chapters.find(c=>c.id===chId);
+  const total = questions.length;
+  const pct = Math.round(100*score/total);
+  const passed = pct >= 80;
+  const xpEarned = passed ? score * stage2xp(stage) * 2 : Math.floor(score * stage2xp(stage) * 0.5);
+
+  // Award XP and mark passed
+  if(pct===100) lsSet('has_perfect_quiz',true);
+  if(passed && !isQuizPassed(chId,stage)){
+    setQuizPassed(chId,stage);
+    addXp(xpEarned);
+    // Confetti!
+    setTimeout(()=>{
+      if(window.confetti){
+        confetti({particleCount:120,spread:80,origin:{y:.5},colors:
+          stage==='E'?['#22c55e','#16a34a','#4ade80']:
+          stage==='C'?['#facc15','#eab308','#fde047']:
+          ['#a855f7','#7c3aed','#c084fc']
+        });
+      }
+    },500);
+    // Check if quiz pass unlocks the next stage
+    const nextStg = stage==='E'?'C':stage==='C'?'A':null;
+    if(nextStg && isStageUnlocked(chId,nextStg)){
+      const uKey=`unlock_seen_${chId}_${nextStg}`;
+      if(!lsGet(uKey,false)){
+        lsSet(uKey,true);
+        pendingUnlock = {chId, stage:nextStg};
+      }
+    }
+  } else if(!passed){
+    addXp(Math.max(0,xpEarned));
+  }
+  // Check achievements after quiz
+  setTimeout(()=>checkAchievements(),800);
+
+  const badge = passed?(pct===100?'&#127942;':pct>=90?'&#11088;':'&#9989;'):'&#128170;';
+  const msg = passed
+    ? pct===100?'PERFEKT! Du behärskar det här ämnet fullständigt!'
+      :pct>=90?'Fantastiskt! Du har koll på nästan allt!'
+      :'Godkänt! Du har visat att du kan det här.'
+    : 'Inte riktigt ännu — men varje försök gör dig bättre! Öva och prova igen.';
+
+  const gradeColor = stage==='E'?'var(--grade-e)':stage==='C'?'var(--grade-c)':'var(--grade-a)';
+
+  return `<div class="chapter-view">
+    <div class="quiz-container animate-in">
+      <div class="quiz-results">
+        <div class="quiz-badge">${badge}</div>
+        <div class="quiz-results-score" style="color:${passed?gradeColor:'var(--neon-red)'}">${score}/${total}</div>
+        <div class="quiz-results-label">${pct}% rätt</div>
+        <div class="quiz-results-msg">${msg}</div>
+        <div class="quiz-results-xp">+${xpEarned} XP ${passed?'&#127881;':''}</div>
+
+        ${passed?`<div style="margin-bottom:16px">
+          <div class="badge-slot earned badge-${pct===100?'gold':pct>=90?'silver':'bronze'}" style="width:60px;height:60px;font-size:28px;margin:0 auto">
+            ${pct===100?'&#127942;':pct>=90?'&#11088;':'&#9989;'}
+          </div>
+          <div style="font-size:.75rem;color:var(--text-dim);margin-top:6px">${stage}-quiz ${pct===100?'Guld':'Godkänt'}!</div>
+        </div>`:''}
+
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+          <button class="btn btn-solution" onclick="showPage('chapter',${chId},'${stage}')">&#8592; Tillbaka</button>
+          ${!passed?`<button class="quiz-start-btn" onclick="startQuiz(${chId},'${stage}')">&#128260; Försök igen</button>`:''}
+          ${passed&&stage==='E'&&isStageUnlocked(chId,'C')?`<button class="quiz-start-btn" onclick="showPage('chapter',${chId},'C')">&#8594; Gå till C-nivå</button>`:''}
+          ${passed&&stage==='C'&&isStageUnlocked(chId,'A')?`<button class="quiz-start-btn" onclick="showPage('chapter',${chId},'A')">&#8594; Gå till A-nivå</button>`:''}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function exitQuiz(){
+  const chId = activeQuiz?activeQuiz.chId:null;
+  activeQuiz = null;
+  if(chId) showPage('chapter',chId);
+  else showPage('map');
+}
+
+// Flying XP orb: from source position to topbar XP display
+function flyXpOrb(startX, startY, amount){
+  const target = document.querySelector('.xp-display');
+  if(!target) return;
+  const targetRect = target.getBoundingClientRect();
+  const endX = targetRect.left + targetRect.width/2;
+  const endY = targetRect.top + targetRect.height/2;
+
+  const orb = document.createElement('div');
+  orb.className = 'xp-orb';
+  orb.textContent = '+' + amount;
+  orb.style.left = startX + 'px';
+  orb.style.top = startY + 'px';
+  document.body.appendChild(orb);
+
+  // Animate using CSS transition with a curve
+  const dx = endX - startX;
+  const dy = endY - startY;
+  const duration = 800;
+  const start = performance.now();
+
+  let lastTrailTime = 0;
+
+  function animate(now){
+    const elapsed = now - start;
+    const t = Math.min(elapsed / duration, 1);
+    // Ease out cubic
+    const ease = 1 - Math.pow(1 - t, 3);
+    // Arc path (go up first, then to target)
+    const arcY = -120 * Math.sin(Math.PI * t);
+    const x = startX + dx * ease;
+    const y = startY + dy * ease + arcY;
+
+    orb.style.left = x + 'px';
+    orb.style.top = y + 'px';
+    orb.style.transform = `scale(${1 - t * 0.4})`;
+
+    // Trail particles
+    if(now - lastTrailTime > 40){
+      lastTrailTime = now;
+      const trail = document.createElement('div');
+      trail.className = 'xp-orb-trail';
+      trail.style.left = x + 'px';
+      trail.style.top = y + 'px';
+      document.body.appendChild(trail);
+      setTimeout(()=>trail.remove(), 500);
+    }
+
+    if(t < 1){
+      requestAnimationFrame(animate);
+    } else {
+      orb.remove();
+      // Glow effect on target
+      target.style.transition = 'box-shadow .2s, transform .2s';
+      target.style.boxShadow = '0 0 20px rgba(168,85,247,.6)';
+      target.style.transform = 'scale(1.15)';
+      setTimeout(()=>{
+        target.style.boxShadow = '';
+        target.style.transform = '';
+      },400);
+      updateTopbar();
+    }
+  }
+  requestAnimationFrame(animate);
+}
+
+// --- COSMETICS ---
+function getEquipped(){
+  return { avatar:lsGet('eq_avatar','cat'), frame:lsGet('eq_frame','simple-black'), item:lsGet('eq_item','backpack') };
+}
+function equipCosmetic(type,id){
+  lsSet('eq_'+type,id);
+  render();
+}
+function renderAvatar(sz){
+  const eq=getEquipped();
+  const rank=getRank();
+  // Images: avatar=200, frame=256, rank=200, item=120
+  // sz is the desired avatar diameter; scale everything proportionally
+  const s=sz/200;
+  const frameSz=Math.round(256*s);
+  const rankSz=Math.round(160*s);
+  // Wrap sized to frame so everything fits
+  const wrapSz=frameSz;
+  return `<div class="av-wrap" style="width:${wrapSz}px;height:${wrapSz}px">
+    <img class="av-img" src="img/avatars/${eq.avatar}.png" style="width:${sz}px;height:${sz}px" onerror="this.style.background='${rank.color}33'">
+    ${eq.frame?`<img class="av-frame" src="img/frames/${eq.frame}.png" style="width:${frameSz}px;height:${frameSz}px" onerror="this.style.display='none'">`:''}
+    <img class="av-rank-badge" src="img/ranks/${rank.img}" style="width:${rankSz}px;height:${rankSz}px" onerror="this.style.display='none'">
+  </div>`;
+}
+function isCosmeticRevealed(type,id){ return lsGet('revealed_'+type+'_'+id,false); }
+function revealCosmetic(type,id,el){
+  lsSet('revealed_'+type+'_'+id,true);
+  // Confetti burst from the box
+  const rect=el.getBoundingClientRect();
+  const x=(rect.left+rect.width/2)/window.innerWidth;
+  const y=(rect.top+rect.height/2)/window.innerHeight;
+  if(window.confetti){
+    confetti({particleCount:60,spread:70,origin:{x,y},colors:['#ffd700','#a855f7','#22c55e','#3b82f6']});
+    setTimeout(()=>confetti({particleCount:30,spread:50,origin:{x,y},colors:['#ffd700','#fff']}),200);
+  }
+  // Flash effect on the element
+  el.classList.add('cosm-revealing');
+  setTimeout(()=>render(),800);
+}
+function checkNewUnlocks(){
+  // Check all cosmetics for newly available items not yet revealed
+  let hasNew=false;
+  const check=(type,arr)=>arr.forEach(it=>{
+    if(it.req && it.req() && !isCosmeticRevealed(type,it.id)) hasNew=true;
+  });
+  check('avatar',AVATARS); check('frame',FRAMES); check('item',ITEMS);
+  // Show notification badge on profile nav if new unlocks
+  const profBtn=document.querySelector('[data-page="profile"]');
+  if(profBtn){
+    let dot=profBtn.querySelector('.notif-dot');
+    if(hasNew && !dot){
+      dot=document.createElement('span');
+      dot.className='notif-dot';
+      profBtn.style.position='relative';
+      profBtn.appendChild(dot);
+    } else if(!hasNew && dot){ dot.remove(); }
+  }
+}
+function renderCosmeticGrid(type,arr,folder){
+  const eq=getEquipped();
+  const cur=eq[type];
+  let lockedCount=0;
+  return `<div class="cosm-grid">${arr.map(it=>{
+    const ok=!it.req||it.req();
+    const on=cur===it.id;
+    const hasImg=it.id!=='';
+    const revealed=isCosmeticRevealed(type,it.id);
+    // Items without req are always visible; free items (no req) are auto-revealed
+    if(!ok) lockedCount++;
+    // Ready to open = meets req but not yet revealed
+    const readyToOpen=ok && it.req && !revealed;
+    // Next 1 locked = visible but greyed; rest = mystery
+    const isMystery=!ok && lockedCount>1;
+    // Unlock requirement text
+    let reqText='';
+    if(!ok && it.req){
+      const s=it.req.toString();
+      const lvlM=s.match(/getLevel\(\)>=(\d+)/);
+      const streakM=s.match(/getStreak\(\)>=(\d+)/);
+      if(lvlM) reqText='Lvl '+lvlM[1];
+      else if(streakM) reqText=streakM[1]+'d streak';
+      else reqText='Speciellt';
+    }
+    // Ready to open — glowing mystery box
+    if(readyToOpen){
+      return `<div class="cosm-item cosm-ready" onclick="revealCosmetic('${type}','${it.id}',this)" title="Klicka för att öppna!">
+        <div class="cosm-mystery-box cosm-glow">?</div>
+        <div class="cosm-item-name" style="color:var(--neon-gold)">Öppna!</div>
+      </div>`;
+    }
+    // Mystery — locked and far away
+    if(isMystery){
+      return `<div class="cosm-item cosm-mystery" title="???">
+        <div class="cosm-mystery-box">?</div>
+        <div class="cosm-item-name">???</div>
+      </div>`;
+    }
+    return `<div class="cosm-item ${ok?'':'cosm-locked'} ${on?'cosm-equipped':''}"
+      ${ok&&!on?`onclick="equipCosmetic('${type}','${it.id}')"`:''}
+      title="${it.name}${reqText?' — '+reqText:''}">
+      ${hasImg?`<img src="img/${folder}/${it.id}.png" alt="${it.name}" onerror="this.style.opacity='.3'">`
+        :`<div style="width:52px;height:52px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:var(--text-dim)">✕</div>`}
+      <div class="cosm-item-name">${it.name}</div>
+      ${!ok?`<div class="cosm-lock-icon">🔒</div>${reqText?`<div class="cosm-req">${reqText}</div>`:''}`:''}
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// --- RANK SYSTEM ---
+function getRank(){
+  const level = getLevel();
+  let rank = RANKS[0];
+  for(const r of RANKS){ if(level >= r.minLevel) rank = r; }
+  return rank;
+}
+function getNextRank(){
+  const level = getLevel();
+  for(const r of RANKS){ if(level < r.minLevel) return r; }
+  return null;
+}
+
+// --- ACHIEVEMENT SYSTEM ---
+function getEarnedAchievements(){ return lsGet('achievements',[]); }
+
+function checkAchievements(){
+  const tp = getTotalProgress();
+  const g = getGradeReadiness();
+  const streak = getStreak();
+  const xp = getXp();
+  const earned = getEarnedAchievements();
+  const newEarned = [];
+
+  // Count fully completed chapters
+  const fullChapters = chapters.filter(ch=>{const p=getChapterProgress(ch.id);return p.total>0&&p.done===p.total;}).length;
+  // Count C-unlocks
+  const cUnlocks = chapters.filter(ch=>isStageUnlocked(ch.id,'C')).length;
+
+  const checks = {
+    first_solve: tp.done>=1,
+    ten_done: tp.done>=10,
+    twentyfive: tp.done>=25,
+    fifty_pct: tp.total>0 && tp.done/tp.total>=0.5,
+    all_e: tp.eT>0 && tp.eD===tp.eT,
+    all_c: tp.cT>0 && tp.cD===tp.cT,
+    all_a: tp.aT>0 && tp.aD===tp.aT,
+    first_quiz: chapters.some(ch=>['E','C','A'].some(s=>isQuizPassed(ch.id,s))),
+    perfect_quiz: lsGet('has_perfect_quiz',false),
+    streak_7: streak>=7,
+    streak_14: streak>=14,
+    streak_30: streak>=30,
+    xp_1000: xp>=1000,
+    xp_5000: xp>=5000,
+    chapter_done: fullChapters>=1,
+    three_ch: fullChapters>=3,
+    grade_e: 'EDCBA'.includes(g.grade),
+    grade_c: 'CBA'.includes(g.grade),
+    grade_a: g.grade==='A',
+    first_unlock: cUnlocks>=1,
+  };
+
+  for(const [id,cond] of Object.entries(checks)){
+    if(cond && !earned.includes(id)){
+      earned.push(id);
+      newEarned.push(id);
+    }
+  }
+
+  if(newEarned.length>0){
+    lsSet('achievements',earned);
+    newEarned.forEach((id,i)=>{
+      const ach = ACHIEVEMENTS.find(a=>a.id===id);
+      if(ach){
+        setTimeout(()=>{
+          showXpPopup(ach.icon,`Prestation: ${ach.name}!`,ach.desc);
+          // Bonus XP for achievement
+          addXp(25);
+        }, i*2200+600);
+      }
+    });
+  }
+  return earned;
+}
+
+// --- UNLOCK EXPLOSION ---
+let pendingUnlock = null;
+
+function triggerUnlockExplosion(element){
+  if(!element) return;
+  const rect = element.getBoundingClientRect();
+  const cx = rect.left + rect.width/2;
+  const cy = rect.top + rect.height/2;
+
+  // Particles burst
+  const colors = ['#00d4ff','#a855f7','#facc15','#22c55e','#f472b6','#fff'];
+  for(let i=0;i<24;i++){
+    const p = document.createElement('div');
+    p.className = 'unlock-particle';
+    const angle = (Math.PI*2*i)/24 + (Math.random()-.5)*.3;
+    const dist = 30+Math.random()*70;
+    const size = 4+Math.random()*6;
+    p.style.cssText = `left:${cx}px;top:${cy}px;width:${size}px;height:${size}px;background:${colors[i%colors.length]};--dx:${Math.cos(angle)*dist}px;--dy:${Math.sin(angle)*dist}px;`;
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),800);
+  }
+
+  // Flash on element
+  const flash = document.createElement('div');
+  flash.className = 'unlock-flash';
+  element.appendChild(flash);
+  setTimeout(()=>flash.remove(),600);
+
+  // Confetti
+  if(window.confetti){
+    const cx01 = cx/window.innerWidth, cy01 = cy/window.innerHeight;
+    confetti({particleCount:60,spread:80,origin:{x:cx01,y:cy01},colors:['#00d4ff','#a855f7','#facc15']});
+  }
+}
+
+function playPendingUnlock(){
+  if(!pendingUnlock) return;
+  const {chId,stage} = pendingUnlock;
+  // Only play on the correct chapter page; keep pending otherwise
+  if(currentPage!=='chapter'||currentChapter!==chId) return;
+  pendingUnlock = null;
+
+  const tabId = `stab-${chId}-${stage}`;
+  const tab = document.getElementById(tabId);
+  if(tab){
+    tab.classList.add('just-unlocked');
+    triggerUnlockExplosion(tab);
+    setTimeout(()=>tab.classList.remove('just-unlocked'),2000);
+    setTimeout(()=>{
+      showXpPopup('🔓',`${stage}-nivå upplåst!`,'Nya utmaningar väntar!');
+    },400);
+  }
+}
+
+// --- PROFILE HERO (reusable) ---
+function renderProfileHero(animate){
+  const rank = getRank();
+  const next = getNextRank();
+  const level = getLevel();
+  const xp = getXp();
+  const tp = getTotalProgress();
+  const g = getGradeReadiness();
+  const streak = getStreak();
+  const earned = getEarnedAchievements();
+  const chDone = chapters.filter(ch=>{const p=getChapterProgress(ch.id);return p.total>0&&p.done===p.total;}).length;
+
+  let rankPct=100, rankText='Högsta rang uppnådd!';
+  if(next){
+    const curXp=(rank.minLevel-1)*XP_PER_LEVEL;
+    const nextXp=(next.minLevel-1)*XP_PER_LEVEL;
+    rankPct=Math.min(100,Math.round(100*(xp-curXp)/Math.max(1,nextXp-curXp)));
+    rankText=`${nextXp-xp} XP till ${next.name}`;
+  }
+
+  return `<div class="profile-hero ${animate?'animate-in':''}" style="border-color:${rank.color};max-width:520px;margin:0 auto 20px;cursor:pointer" onclick="showPage('profile')">
+    <div class="profile-banner" style="background:linear-gradient(135deg,${rank.color}33,${rank.color}11,var(--bg-card))">
+      <div style="position:absolute;top:12px;right:16px;font-size:.65rem;color:${rank.color};font-weight:700;z-index:2">${rank.title}</div>
+    </div>
+    <div class="profile-body">
+      <div class="profile-avatar-wrap" style="border-color:${rank.color};background:${rank.color}18;box-shadow:0 0 25px ${rank.color}33">${renderAvatar(88)}</div>
+      <div class="profile-rank-name" style="color:${rank.color};display:flex;align-items:center;justify-content:center;gap:6px">${rank.name}${getEquipped().item?`<img src="img/items/${getEquipped().item}.png" style="width:32px;height:32px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))">`:''}</div>
+      <div class="profile-rank-title">Level ${level} &middot; ${xp} XP &middot; Betyg: ${g.grade}</div>
+      <div class="profile-stats-row">
+        <div class="profile-stat-box"><div class="profile-stat-val" style="color:var(--neon-green)">${tp.done}</div><div class="profile-stat-lbl">Klara</div></div>
+        <div class="profile-stat-box"><div class="profile-stat-val" style="color:var(--neon-orange)">${streak}</div><div class="profile-stat-lbl">Streak</div></div>
+        <div class="profile-stat-box"><div class="profile-stat-val" style="color:var(--neon-purple)">${earned.length}</div><div class="profile-stat-lbl">Badges</div></div>
+        <div class="profile-stat-box"><div class="profile-stat-val" style="color:var(--neon-blue)">${chDone}</div><div class="profile-stat-lbl">Kapitel</div></div>
+      </div>
+      <div style="padding:10px;background:var(--bg-surface);border-radius:var(--radius)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <img src="img/ranks/${rank.img}" style="width:28px;height:28px;object-fit:contain">
+          <div class="grade-bar" style="flex:1"><div class="grade-bar-fill" style="width:${rankPct}%;background:linear-gradient(90deg,${rank.color},${next?next.color:rank.color})"></div></div>
+          <img src="img/ranks/${next?next.img:rank.img}" style="width:28px;height:28px;object-fit:contain;opacity:${next?.4:1}">
+        </div>
+        <div style="font-size:.65rem;color:var(--text-dim)">${rankText}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// --- PROFILE PAGE ---
+function renderProfilePage(){
+  const rank = getRank();
+  const next = getNextRank();
+  const level = getLevel();
+  const xp = getXp();
+  const earned = getEarnedAchievements();
+  const chDone = chapters.filter(ch=>{const p=getChapterProgress(ch.id);return p.total>0&&p.done===p.total;});
+
+  return `<div style="max-width:700px;margin:0 auto">
+    ${renderProfileHero(true)}
+
+    <div class="card animate-in" style="margin-bottom:20px;animation-delay:.1s">
+      <div class="card-title">🎖️ Rankvägen</div>
+      <div class="rank-path">
+        ${RANKS.map((r,i)=>{
+          const isEarned = level>=r.minLevel;
+          const isCurrent = r===rank;
+          const connector = i>0?`<div class="rank-connector ${level>=r.minLevel?'filled':''}"></div>`:'';
+          return `${connector}<div class="rank-node ${isCurrent?'current':isEarned?'earned':'locked'}" style="color:${r.color}">
+            <div class="rank-node-icon"><img src="img/ranks/${r.img}" style="width:36px;height:36px;object-fit:contain;${isEarned?'':'filter:grayscale(1) brightness(.5)'}"></div>
+            <div class="rank-node-name" style="${isEarned?'color:'+r.color:''}">${r.name}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="card animate-in" style="margin-bottom:20px;animation-delay:.15s">
+      ${(()=>{
+        const weak=chapters.map(ch=>{
+          const p=getChapterProgress(ch.id);
+          const pct=p.total>0?Math.round(100*p.done/p.total):0;
+          const vikt=PROV_VIKT[ch.id]||0;
+          return {ch,pct,vikt};
+        }).filter(x=>x.pct<100).sort((a,b)=>a.pct-b.pct||(b.vikt-a.vikt)).slice(0,3);
+        if(!weak.length) return '<div class="card-title">&#127942; Alla områden klara!</div><p style="color:var(--neon-green);font-size:.85rem;text-align:center;padding:16px">Du har övat klart alla kapitel. Snyggt jobbat!</p>';
+        return '<div class="card-title">&#127919; Fokusera här</div><p style="font-size:.75rem;color:var(--text-dim);margin-bottom:12px">Dina svagaste områden — störst effekt att öva på dessa!</p>' +
+          weak.map((w,i)=>{
+            const urgency=w.vikt>=8?'Hög provvikt!':w.vikt>=5?'Medel provvikt':'';
+            return '<div class="focus-area" onclick="showPage(\'chapter\','+w.ch.id+')">' +
+              '<div class="focus-rank">'+(i+1)+'</div>' +
+              '<div class="focus-info">' +
+                '<div class="focus-name">'+(CH_ICONS[w.ch.id]||'')+' '+w.ch.title.split(':')[0].split('&')[0].trim()+'</div>' +
+                '<div style="display:flex;align-items:center;gap:8px;margin-top:4px">' +
+                  '<div class="grade-bar" style="flex:1;height:6px"><div class="grade-bar-fill" style="width:'+w.pct+'%;background:linear-gradient(90deg,var(--neon-blue),var(--neon-purple));box-shadow:0 0 8px rgba(59,130,246,.3)"></div></div>' +
+                  '<span style="font-size:.7rem;font-weight:700;color:var(--neon-blue)">'+w.pct+'%</span>' +
+                '</div>' +
+                (urgency?'<div style="font-size:.6rem;color:var(--neon-orange);margin-top:3px">&#9888;&#65039; '+urgency+'</div>':'') +
+              '</div>' +
+              '<div class="focus-go">&#10132;</div>' +
+            '</div>';
+          }).join('');
+      })()}
+    </div>
+
+    <div class="card animate-in" style="margin-bottom:20px;animation-delay:.2s">
+      <div class="card-title">😺 Avatarer</div>
+      ${renderCosmeticGrid('avatar',AVATARS,'avatars')}
+    </div>
+
+    <div class="card animate-in" style="margin-bottom:20px;animation-delay:.25s">
+      <div class="card-title">🖼️ Ramar</div>
+      ${renderCosmeticGrid('frame',FRAMES,'frames')}
+    </div>
+
+    <div class="card animate-in" style="margin-bottom:20px;animation-delay:.3s">
+      <div class="card-title">🎒 Accessoarer</div>
+      ${renderCosmeticGrid('item',ITEMS,'items')}
+    </div>
+
+    <div class="card animate-in" style="margin-bottom:20px;animation-delay:.35s">
+      <div class="card-title">🏆 Prestationer (${earned.length}/${ACHIEVEMENTS.length})</div>
+      <div class="ach-grid">
+        ${ACHIEVEMENTS.map(a=>{
+          const has = earned.includes(a.id);
+          return `<div class="ach-card ${has?'earned':'locked'}">
+            <div class="ach-icon">${has?a.icon:'🔒'}</div>
+            <div class="ach-name">${has?a.name:'???'}</div>
+            <div class="ach-desc">${has?a.desc:'Inte upplåst ännu'}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:32px;padding-top:24px;border-top:1px solid rgba(255,255,255,.06)">
+      <button class="btn" style="background:rgba(239,68,68,.06);color:rgba(239,68,68,.5);border:1px solid rgba(239,68,68,.1);padding:8px 20px;font-size:.7rem" onclick="resetAll()">
+        Återställ alla framsteg
+      </button>
+    </div>
+  </div>`;
+}
+
+// --- INIT ---
+document.addEventListener('DOMContentLoaded',()=>{
+  updateStreak();
+  updateTopbar();
+  const wait = setInterval(()=>{
+    if(window.renderMathInElement){ clearInterval(wait); render(); checkAchievements(); }
+  },100);
+  setTimeout(()=>{ clearInterval(wait); render(); checkAchievements(); },3000);
+});
+</script>
+</body>
+</html>
