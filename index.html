@@ -1315,6 +1315,70 @@ body::before {
   box-shadow:0 0 6px var(--neon-gold);
   animation:subtlePulse 2s ease-in-out infinite;
 }
+
+/* Coach marks / onboarding */
+.coach-overlay {
+  position:fixed;inset:0;z-index:500;
+  background:rgba(0,0,0,.7);
+  transition:opacity .3s;
+}
+.coach-spotlight {
+  position:absolute;
+  border-radius:12px;
+  box-shadow:0 0 0 9999px rgba(0,0,0,.7);
+  transition:all .4s ease;
+  pointer-events:none;
+}
+.coach-bubble {
+  position:absolute;z-index:501;
+  background:linear-gradient(145deg,#1e1e36,#252545);
+  border:1px solid var(--neon-blue);
+  border-radius:var(--radius-lg);
+  padding:20px 24px 16px;
+  max-width:320px;width:90vw;
+  box-shadow:0 8px 32px rgba(0,0,0,.5),0 0 20px rgba(0,212,255,.1);
+  animation:coachPop .35s ease-out;
+}
+@keyframes coachPop {
+  0% { opacity:0;transform:scale(.9) translateY(8px); }
+  100% { opacity:1;transform:scale(1) translateY(0); }
+}
+.coach-bubble h3 {
+  color:var(--neon-blue);font-size:1rem;margin:0 0 8px;
+  display:flex;align-items:center;gap:8px;
+}
+.coach-bubble p {
+  color:var(--text);font-size:.88rem;line-height:1.6;margin:0 0 14px;
+}
+.coach-bubble .coach-btn {
+  display:inline-block;padding:8px 24px;
+  background:var(--neon-blue);color:#000;
+  border:none;border-radius:var(--radius);
+  font-weight:700;font-size:.85rem;cursor:pointer;
+  transition:background .2s;
+}
+.coach-bubble .coach-btn:hover { background:#33e0ff; }
+.coach-bubble .coach-skip {
+  display:inline-block;margin-left:12px;
+  color:var(--text-dim);font-size:.8rem;cursor:pointer;
+  border:none;background:none;text-decoration:underline;
+}
+.coach-bubble .coach-skip:hover { color:var(--text); }
+.coach-steps {
+  display:flex;gap:6px;margin-top:10px;
+}
+.coach-step-dot {
+  width:8px;height:8px;border-radius:50%;
+  background:rgba(255,255,255,.15);
+}
+.coach-step-dot.active { background:var(--neon-blue); }
+.coach-step-dot.done { background:var(--neon-green); }
+.coach-arrow {
+  position:absolute;width:0;height:0;
+  border-left:8px solid transparent;border-right:8px solid transparent;
+}
+.coach-arrow.up { border-bottom:10px solid var(--neon-blue);top:-10px; }
+.coach-arrow.down { border-top:10px solid var(--neon-blue);bottom:-10px; }
 </style>
 </head>
 <body>
@@ -1699,6 +1763,155 @@ function render(){
   // Play pending unlock explosion if on right page
   if(pendingUnlock) setTimeout(()=>playPendingUnlock(),500);
   checkNewUnlocks();
+  // Coach marks on first visit
+  setTimeout(()=>triggerCoachMarks(),400);
+}
+
+// --- COACH MARKS (onboarding) ---
+const COACH_STEPS = [
+  {
+    id:'welcome',
+    page:'dashboard',
+    title:'Välkommen till NP Matte Quest!',
+    text:'Här övar du inför nationella provet i matte. Välj ett kapitel nedan för att börja!',
+    target:()=>document.querySelector('.chapter-card'),
+    pos:'below'
+  },
+  {
+    id:'solve',
+    page:'chapter',
+    title:'Lös uppgifter',
+    text:'Läs uppgiften, räkna ut svaret och tryck "Kan säkert" när du löst den. Tryck "Visa lösning" om du behöver hjälp.',
+    target:()=>document.querySelector('.problem-card'),
+    pos:'below'
+  },
+  {
+    id:'variants',
+    page:'chapter',
+    title:'Fler varianter',
+    text:'Varje uppgift har flera varianter — svajpa eller använd pilarna för att öva mer på samma typ!',
+    target:()=>document.querySelector('.variant-nav'),
+    pos:'below'
+  },
+  {
+    id:'unlock',
+    page:'chapter',
+    title:'Lås upp nya nivåer',
+    text:'Klara alla E-uppgifter och quizzen för att låsa upp C-nivån. Sedan C för att nå A!',
+    target:()=>document.querySelector('.locked-tab'),
+    pos:'below'
+  },
+  {
+    id:'profile',
+    page:'dashboard',
+    title:'Din profil',
+    text:'Här ser du din rank, XP och avatarer. Lås upp nya genom att lösa uppgifter!',
+    target:()=>document.querySelector('.profile-hero'),
+    pos:'below'
+  }
+];
+
+let coachActive = false;
+let coachStep = 0;
+
+function getCoachSeen(){
+  return lsGet('coach_seen',[]);
+}
+function setCoachSeen(id){
+  const seen = getCoachSeen();
+  if(!seen.includes(id)){ seen.push(id); lsSet('coach_seen',seen); }
+}
+
+function triggerCoachMarks(){
+  if(coachActive) return;
+  if(lsGet('coach_dismissed',false)) return;
+  const seen = getCoachSeen();
+  // Find the next unseen step that matches current page
+  const nextIdx = COACH_STEPS.findIndex(s=>!seen.includes(s.id) && s.page===currentPage);
+  if(nextIdx===-1) return;
+  const step = COACH_STEPS[nextIdx];
+  const target = step.target();
+  if(!target) return;
+  coachStep = nextIdx;
+  showCoachMark(step, target);
+}
+
+function showCoachMark(step, target){
+  coachActive = true;
+  // Remove old
+  document.querySelectorAll('.coach-overlay,.coach-bubble').forEach(e=>e.remove());
+
+  // Overlay
+  const overlay = document.createElement('div');
+  overlay.className='coach-overlay';
+  overlay.onclick=()=>{}; // block clicks
+  document.body.appendChild(overlay);
+
+  // Target rect
+  const rect = target.getBoundingClientRect();
+  const pad = 8;
+
+  // Spotlight cutout
+  const spot = document.createElement('div');
+  spot.className='coach-spotlight';
+  spot.style.cssText=`left:${rect.left-pad+window.scrollX}px;top:${rect.top-pad+window.scrollY}px;width:${rect.width+pad*2}px;height:${rect.height+pad*2}px;`;
+  overlay.appendChild(spot);
+
+  // Bubble
+  const bubble = document.createElement('div');
+  const seen = getCoachSeen();
+  const totalSteps = COACH_STEPS.length;
+  const currentNum = seen.length + 1;
+  const dots = COACH_STEPS.map((_,i)=>{
+    const cls = seen.includes(COACH_STEPS[i].id)?'done':i===coachStep?'active':'';
+    return `<div class="coach-step-dot ${cls}"></div>`;
+  }).join('');
+
+  bubble.className='coach-bubble';
+  bubble.innerHTML=`
+    <div class="coach-arrow up" style="left:24px"></div>
+    <h3>${step.title}</h3>
+    <p>${step.text}</p>
+    <button class="coach-btn" onclick="advanceCoach()">Okej!</button>
+    <button class="coach-skip" onclick="skipCoach()">Hoppa över guiden</button>
+    <div class="coach-steps">${dots}</div>
+  `;
+
+  // Position bubble below or above target
+  const bubbleTop = rect.bottom + window.scrollY + 16;
+  let bubbleLeft = rect.left + window.scrollX;
+  // Keep within viewport
+  const maxLeft = window.innerWidth - 340;
+  if(bubbleLeft > maxLeft) bubbleLeft = maxLeft;
+  if(bubbleLeft < 8) bubbleLeft = 8;
+  bubble.style.cssText=`position:absolute;top:${bubbleTop}px;left:${bubbleLeft}px;z-index:501;`;
+
+  document.body.appendChild(bubble);
+
+  // Scroll target into view if needed
+  const bubbleBottom = bubbleTop + 200;
+  if(bubbleBottom > window.scrollY + window.innerHeight || rect.top < 0){
+    window.scrollTo({top:Math.max(0, rect.top + window.scrollY - 80), behavior:'smooth'});
+  }
+}
+
+function advanceCoach(){
+  const step = COACH_STEPS[coachStep];
+  setCoachSeen(step.id);
+  closeCoachMark();
+  coachActive = false;
+  // Try next step immediately (same page)
+  setTimeout(()=>triggerCoachMarks(),300);
+}
+
+function skipCoach(){
+  lsSet('coach_dismissed',true);
+  closeCoachMark();
+  coachActive = false;
+}
+
+function closeCoachMark(){
+  document.querySelectorAll('.coach-overlay,.coach-bubble').forEach(e=>e.remove());
 }
 
 function updateTopbar(){
