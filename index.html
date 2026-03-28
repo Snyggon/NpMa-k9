@@ -1985,7 +1985,8 @@ function renderChapter(chId){
             <div class="stage-tab-label">Mellannivå</div>
             <div class="stage-tab-count">${p.cD}/${p.cT} klara</div>
             ${isQuizPassed(chId,'C')?'<div class="quiz-passed-indicator">&#9989; Quiz klar</div>':''}`
-          :`<div class="lock-big">🔒</div>
+          :`<div class="stage-tab-level" style="color:var(--grade-c);opacity:.35">C</div>
+            <div class="lock-big">🔒</div>
             <div class="lock-req">${(p.eT>0&&p.eD===p.eT)?'Klara E-quizzen (80%)<br>för att låsa upp':'Klara alla E-uppgifter<br>+ quiz för att låsa upp'}</div>`}
       </div>
       <div class="stage-tab ${currentStage==='A'?'active-a':''} ${!aUnlocked?'locked-tab':''}" onclick="${aUnlocked?`switchStage(${chId},'A')`:'lockedMsg()'}" id="stab-${chId}-A">
@@ -1994,7 +1995,8 @@ function renderChapter(chId){
             <div class="stage-tab-label">Avancerat</div>
             <div class="stage-tab-count">${p.aD}/${p.aT} klara</div>
             ${isQuizPassed(chId,'A')?'<div class="quiz-passed-indicator">&#9989; Quiz klar</div>':''}`
-          :`<div class="lock-big">🔒</div>
+          :`<div class="stage-tab-level" style="color:var(--grade-a);opacity:.35">A</div>
+            <div class="lock-big">🔒</div>
             <div class="lock-req">${!cUnlocked?'Klara E + quiz först':(p.cT>0&&p.cD===p.cT)?'Klara C-quizzen (80%)<br>för att låsa upp':'Klara alla C-uppgifter<br>+ quiz för att låsa upp'}</div>`}
       </div>
     </div>
