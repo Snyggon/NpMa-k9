@@ -1488,7 +1488,6 @@ body::before {
   <div class="video-modal" onclick="event.stopPropagation()">
     <button class="video-modal-close" onclick="closeVideo()">&times;</button>
     <iframe id="videoIframe" allowfullscreen allow="autoplay"></iframe>
-    <a id="videoFallbackLink" href="#" target="_blank" rel="noopener" style="display:block;text-align:center;padding:10px 0;color:var(--neon-blue);font-size:14px;text-decoration:underline;">Öppna på YouTube om videon inte visas</a>
   </div>
 </div>
 
@@ -2364,7 +2363,6 @@ function openVideo(videoId){
     extra = '&start='+parts[1];
   }
   iframe.src = 'https://www.youtube-nocookie.com/embed/'+embedId+'?autoplay=1&rel=0'+extra;
-  document.getElementById('videoFallbackLink').href = 'https://www.youtube.com/watch?v='+videoId;
   overlay.classList.add('active');
   document.body.style.overflow='hidden';
 }
