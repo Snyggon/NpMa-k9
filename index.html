@@ -3185,7 +3185,6 @@ function renderProfileHero(animate){
 
   return `<div class="profile-hero ${animate?'animate-in':''} ${isComplete?'gold-complete':''}" style="border-color:${cardColor};max-width:520px;margin:0 auto 20px;cursor:pointer" onclick="showPage('profile')">
     <div class="profile-banner" style="background:linear-gradient(135deg,${cardColor}33,${cardColor}11,var(--bg-card))">
-      <div style="position:absolute;top:12px;right:16px;font-size:.65rem;color:${cardColor};font-weight:700;z-index:2">${rank.title}</div>
     </div>
     <div class="profile-body">
       <div class="profile-avatar-wrap" style="border-color:${rank.color};background:${rank.color}18;box-shadow:0 0 25px ${rank.color}33">${renderAvatar(88)}</div>
