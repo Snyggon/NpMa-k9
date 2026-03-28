@@ -496,7 +496,25 @@ body::before {
 @media(max-width:480px){ .calc-tag .calc-full { display:none; } }
 @media(min-width:481px){ .calc-tag .calc-short { display:none; } }
 
-/* Theory section */
+/* Theory toggle */
+.theory-toggle {
+  display:flex;align-items:center;gap:12px;
+  background:linear-gradient(145deg,#1e1e36,#1a1a2e);
+  border:1px solid rgba(0,212,255,.15);
+  border-radius:var(--radius);padding:14px 20px;margin-bottom:24px;
+  cursor:pointer;transition:all .2s;width:100%;
+  color:var(--neon-blue);font-size:.95rem;font-weight:600;
+}
+.theory-toggle:hover { border-color:rgba(0,212,255,.35);background:linear-gradient(145deg,#232345,#1e1e36); }
+.theory-toggle .theory-icon { font-size:1.3rem; }
+.theory-toggle .theory-arrow {
+  margin-left:auto;transition:transform .3s;font-size:.8rem;opacity:.6;
+}
+.theory-toggle.open .theory-arrow { transform:rotate(180deg); }
+.theory-body {
+  max-height:0;overflow:hidden;transition:max-height .4s ease;
+}
+.theory-body.open { max-height:5000px; }
 .theory-section {
   background:var(--bg-surface);
   border:1px solid rgba(255,255,255,.06);
@@ -1961,8 +1979,14 @@ function renderChapter(chId){
     </div>
 
     ${currentStage==='E'?`
-      <div class="theory-section animate-in" style="animation-delay:.15s">
-        ${ch.theory}
+      <button class="theory-toggle animate-in" style="animation-delay:.15s" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+        <span class="theory-icon">📖</span> Teori &amp; Formler — ${ch.title.split(':')[0]}
+        <span class="theory-arrow">▼</span>
+      </button>
+      <div class="theory-body">
+        <div class="theory-section">
+          ${ch.theory}
+        </div>
       </div>
     `:''}
 
