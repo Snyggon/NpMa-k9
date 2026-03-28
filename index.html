@@ -368,12 +368,13 @@ body::before {
   display:flex;align-items:center;gap:16px;margin-bottom:16px;
 }
 .chapter-back {
-  width:36px;height:36px;border-radius:10px;border:1px solid rgba(255,255,255,.1);
-  background:rgba(255,255,255,.04);color:var(--text-dim);
+  width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.06);color:var(--text-bright);
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;transition:var(--transition);font-size:18px;
+  flex-shrink:0;
 }
-.chapter-back:hover { background:rgba(255,255,255,.08);color:var(--text-bright); }
+.chapter-back:hover { background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.3); }
 .chapter-hero h2 { font-size:1.4rem;color:var(--text-bright);font-weight:800; }
 .chapter-hero-sub { font-size:.85rem;color:var(--text-dim);margin-top:4px; }
 
@@ -2079,7 +2080,7 @@ function renderChapter(chId){
   return `<div class="chapter-view">
     <div class="chapter-hero animate-in">
       <div class="chapter-hero-top">
-        <button class="chapter-back" onclick="showPage('map')">&#8592;</button>
+        <button class="chapter-back" onclick="showPage('dashboard')">&#8592;</button>
         <div>
           <h2>${CH_ICONS[chId]||''} ${ch.title}</h2>
           <div class="chapter-hero-sub">~${vikt}p per prov &middot; ${p.done}/${p.total} klara &middot; ${ch.tags.join(' & ')}</div>
