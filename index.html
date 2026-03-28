@@ -632,11 +632,11 @@ body::before {
 }
 .video-modal-overlay.active { opacity:1;pointer-events:auto; }
 .video-modal {
-  width:90%;max-width:800px;aspect-ratio:16/9;
+  width:90%;max-width:800px;
   position:relative;border-radius:var(--radius-lg);overflow:hidden;
-  box-shadow:0 20px 60px rgba(0,0,0,.5);
+  box-shadow:0 20px 60px rgba(0,0,0,.5);background:#000;
 }
-.video-modal iframe { width:100%;height:100%;border:none; }
+.video-modal iframe { width:100%;aspect-ratio:16/9;display:block;border:none; }
 .video-modal-close {
   position:absolute;top:-40px;right:0;
   background:none;border:none;color:#fff;
@@ -1336,6 +1336,7 @@ body::before {
   <div class="video-modal" onclick="event.stopPropagation()">
     <button class="video-modal-close" onclick="closeVideo()">&times;</button>
     <iframe id="videoIframe" allowfullscreen allow="autoplay"></iframe>
+    <a id="videoFallbackLink" href="#" target="_blank" rel="noopener" style="display:block;text-align:center;padding:10px 0;color:var(--neon-blue);font-size:14px;text-decoration:underline;">Öppna på YouTube om videon inte visas</a>
   </div>
 </div>
 
@@ -2193,6 +2194,7 @@ function openVideo(videoId){
   const overlay = document.getElementById('videoOverlay');
   const iframe = document.getElementById('videoIframe');
   iframe.src = 'https://www.youtube-nocookie.com/embed/'+videoId+'?autoplay=1&rel=0';
+  document.getElementById('videoFallbackLink').href = 'https://www.youtube.com/watch?v='+videoId;
   overlay.classList.add('active');
   document.body.style.overflow='hidden';
 }
