@@ -838,6 +838,86 @@ body::before {
   .sidebar-btn { width:36px;height:36px;font-size:17px; }
 }
 
+/* --- MOBILE (<480px) --- */
+@media (max-width:480px) {
+  /* Hide sidebar, reclaim full width */
+  .sidebar { display:none; }
+  .topbar { left:0;height:48px;padding:0 12px;gap:8px; }
+  .main { margin-left:0;padding:12px;padding-top:60px; }
+  .xp-display,.level-badge { padding:4px 10px;font-size:.7rem; }
+
+  /* Dashboard */
+  .dash-grid { gap:10px; }
+  .stat-card { padding:14px; }
+  .stat-value { font-size:1.6rem; }
+
+  /* Profile hero */
+  .profile-hero { margin:0 0 16px; }
+  .profile-body { padding:0 16px 16px; }
+  .profile-stats-row { grid-template-columns:1fr 1fr; }
+  .profile-stat-val { font-size:1rem; }
+  .profile-avatar-wrap { width:72px;height:72px;margin:-36px auto 10px;font-size:2.2rem; }
+
+  /* Stage tabs */
+  .stage-tabs { gap:4px; }
+  .stage-tab { padding:10px 6px; }
+  .stage-tab-level { font-size:1rem; }
+  .stage-tab-label { font-size:.6rem;letter-spacing:0; }
+  .stage-tab-count { font-size:.55rem; }
+
+  /* Problem cards */
+  .problem-header { flex-wrap:wrap;gap:4px; }
+  .problem-card { padding:14px; }
+  .btn { padding:10px 14px;font-size:.78rem;min-height:40px; }
+  .variant-nav-inline button { width:36px;height:36px; }
+
+  /* Theory toggle */
+  .theory-toggle { padding:12px 14px;font-size:.85rem; }
+
+  /* Howto button */
+  .howto-btn { padding:10px 14px;font-size:.85rem;gap:6px; }
+
+  /* Video modal */
+  .video-modal { width:95%; }
+  .video-modal-close {
+    top:8px;right:8px;width:44px;height:44px;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(0,0,0,.6);border-radius:50%;font-size:22px;
+  }
+
+  /* XP popup — bottom instead of top-right */
+  .xp-popup { top:auto;bottom:16px;right:12px;left:12px;max-width:none;text-align:center; }
+
+  /* Quiz */
+  .quiz-gate { padding:18px; }
+  .quiz-gate h3 { font-size:.95rem; }
+}
+
+/* Bottom nav for mobile — replaces sidebar */
+.mobile-nav {
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;
+  height:56px;
+  background:var(--bg-card);
+  border-top:1px solid rgba(255,255,255,.06);
+  z-index:200;
+  justify-content:space-around;
+  align-items:center;
+  padding:0 8px;
+}
+.mobile-nav button {
+  background:none;border:none;color:var(--text-dim);
+  font-size:1.3rem;padding:8px 12px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  transition:color .2s;
+}
+.mobile-nav button.active { color:var(--neon-blue); }
+.mobile-nav button span.nav-label { font-size:.55rem;font-weight:600; }
+@media (max-width:480px) {
+  .mobile-nav { display:flex; }
+  .main { padding-bottom:72px; }
+}
+
 /* --- QUIZ SYSTEM --- */
 .quiz-gate {
   background:linear-gradient(135deg, rgba(0,212,255,.08), rgba(168,85,247,.08));
@@ -1373,6 +1453,22 @@ body::before {
 <!-- MAIN -->
 <main class="main" id="mainContent"></main>
 
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mobile-nav" id="mobileNav">
+  <button data-page="dashboard" onclick="showPage('dashboard')">
+    <span>&#127968;</span><span class="nav-label">Hem</span>
+  </button>
+  <button data-page="stats" onclick="showPage('stats')">
+    <span>&#128202;</span><span class="nav-label">Statistik</span>
+  </button>
+  <button data-page="examinfo" onclick="showPage('examinfo')">
+    <span>&#128214;</span><span class="nav-label">Prov</span>
+  </button>
+  <button data-page="profile" onclick="showPage('profile')">
+    <span>&#129351;</span><span class="nav-label">Profil</span>
+  </button>
+</nav>
+
 <!-- XP POPUP -->
 <div class="xp-popup" id="xpPopup">
   <span class="xp-popup-icon">&#9889;</span>
@@ -1678,8 +1774,8 @@ function showPage(page, chId, stage){
   if(chId !== undefined) currentChapter = chId;
   if(stage) currentStage = stage;
 
-  // Update sidebar
-  document.querySelectorAll('.sidebar-btn').forEach(b=>{
+  // Update sidebar + mobile nav
+  document.querySelectorAll('.sidebar-btn,.mobile-nav button').forEach(b=>{
     const bp = b.dataset.page;
     b.classList.toggle('active',
       bp===page || (page==='chapter' && bp==='dashboard')
