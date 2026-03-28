@@ -1398,19 +1398,19 @@ const CH_ICONS = {
 // Rank system — 14 ranks with custom badge images
 const RANKS = [
   { minLevel:1,  name:'Rekryt',            img:'1-rekryt.png',           icon:'🔰', color:'#94a3b8', title:'Nybörjare' },
-  { minLevel:2,  name:'Ekvationskadet',    img:'2-ekvationskadet.png',   icon:'📐', color:'#22c55e', title:'Räknar rätt' },
-  { minLevel:3,  name:'Vektorsoldat',      img:'3-vektorsoldat.png',     icon:'🗡️', color:'#14b8a6', title:'Har riktning' },
-  { minLevel:5,  name:'Sigmapilot',        img:'4-sigmapilot.png',       icon:'✈️', color:'#3b82f6', title:'Flygande start' },
-  { minLevel:6,  name:'Primtalskrigare',   img:'5-primtalskrigare.png',  icon:'⚔️', color:'#6366f1', title:'Odelbar' },
-  { minLevel:8,  name:'Deltastriker',      img:'6-deltastriker.png',     icon:'🎯', color:'#8b5cf6', title:'Träffsäker' },
-  { minLevel:10, name:'Matrixvakt',        img:'7-matrixvakt.png',       icon:'🛡️', color:'#475569', title:'Skyddar kunskapen' },
-  { minLevel:12, name:'Thetablixt',        img:'8-thetablixt.png',       icon:'⚡', color:'#06b6d4', title:'Blixtsnabb' },
-  { minLevel:14, name:'Diamantfaktor',     img:'9-diamantfaktor.png',    icon:'💎', color:'#67e8f9', title:'Oslipbar' },
-  { minLevel:16, name:'Integralkapten',    img:'10-integralkapten.png',  icon:'⚓', color:'#f97316', title:'Summerar allt' },
-  { minLevel:18, name:'X-General',         img:'11-x-general.png',       icon:'⭐', color:'#ef4444', title:'Löser det okända' },
-  { minLevel:20, name:'Bevismästare',      img:'12-bevismastare.png',    icon:'🏅', color:'#eab308', title:'Bevisat allt' },
-  { minLevel:23, name:'Pi-Kommendör',      img:'13-pi-kommendor.png',    icon:'🔮', color:'#7c3aed', title:'Oändlig precision' },
-  { minLevel:26, name:'Infinity-Kejsare',  img:'14-infinitykejsare.png', icon:'👑', color:'#ffd700', title:'Gränslös' },
+  { minLevel:3,  name:'Ekvationskadet',    img:'2-ekvationskadet.png',   icon:'📐', color:'#22c55e', title:'Räknar rätt' },
+  { minLevel:7,  name:'Vektorsoldat',      img:'3-vektorsoldat.png',     icon:'🗡️', color:'#14b8a6', title:'Har riktning' },
+  { minLevel:11, name:'Sigmapilot',        img:'4-sigmapilot.png',       icon:'✈️', color:'#3b82f6', title:'Flygande start' },
+  { minLevel:14, name:'Primtalskrigare',   img:'5-primtalskrigare.png',  icon:'⚔️', color:'#6366f1', title:'Odelbar' },
+  { minLevel:17, name:'Deltastriker',      img:'6-deltastriker.png',     icon:'🎯', color:'#8b5cf6', title:'Träffsäker' },
+  { minLevel:20, name:'Matrixvakt',        img:'7-matrixvakt.png',       icon:'🛡️', color:'#475569', title:'Skyddar kunskapen' },
+  { minLevel:24, name:'Thetablixt',        img:'8-thetablixt.png',       icon:'⚡', color:'#06b6d4', title:'Blixtsnabb' },
+  { minLevel:27, name:'Diamantfaktor',     img:'9-diamantfaktor.png',    icon:'💎', color:'#67e8f9', title:'Oslipbar' },
+  { minLevel:30, name:'Integralkapten',    img:'10-integralkapten.png',  icon:'⚓', color:'#f97316', title:'Summerar allt' },
+  { minLevel:33, name:'X-General',         img:'11-x-general.png',       icon:'⭐', color:'#ef4444', title:'Löser det okända' },
+  { minLevel:37, name:'Bevismästare',      img:'12-bevismastare.png',    icon:'🏅', color:'#eab308', title:'Bevisat allt' },
+  { minLevel:40, name:'Pi-Kommendör',      img:'13-pi-kommendor.png',    icon:'🔮', color:'#7c3aed', title:'Oändlig precision' },
+  { minLevel:43, name:'Infinity-Kejsare',  img:'14-infinitykejsare.png', icon:'👑', color:'#ffd700', title:'Gränslös' },
 ];
 
 // Cosmetics — avatars, frames, items
@@ -1419,41 +1419,41 @@ const AVATARS = [
   { id:'dog',     name:'Hunden',           req:null },
   { id:'frog',    name:'Grodan',           req:null },
   { id:'bear',    name:'Björnen',          req:()=>getLevel()>=2 },
-  { id:'fish',    name:'Fisken',           req:()=>getLevel()>=2 },
-  { id:'panda',   name:'Pandan',           req:()=>getLevel()>=3 },
-  { id:'penguin', name:'Pingvinen',        req:()=>getLevel()>=4 },
-  { id:'Hamster', name:'Hamstern',         req:()=>getLevel()>=5 },
-  { id:'pigeon',  name:'Duvan',            req:()=>getLevel()>=6 },
-  { id:'raccoon', name:'Tvättbjörnen',     req:()=>getLevel()>=8 },
-  { id:'octopus', name:'Bläckfisken',      req:()=>getLevel()>=10 },
-  { id:'wolf',    name:'Vargen',           req:()=>getLevel()>=13 },
-  { id:'leopard', name:'Leoparden',        req:()=>getLevel()>=16 },
-  { id:'rooster', name:'Tuppen',           req:()=>getLevel()>=20 },
-  { id:'raccoon3',name:'Guld-Tvättbjörn',  req:()=>lsGet('has_perfect_quiz',false) },
+  { id:'fish',    name:'Fisken',           req:()=>getLevel()>=4 },
+  { id:'panda',   name:'Pandan',           req:()=>getLevel()>=6 },
+  { id:'penguin', name:'Pingvinen',        req:()=>getLevel()>=8 },
+  { id:'Hamster', name:'Hamstern',         req:()=>getLevel()>=10 },
+  { id:'pigeon',  name:'Duvan',            req:()=>getLevel()>=12 },
+  { id:'raccoon', name:'Tvättbjörnen',     req:()=>getLevel()>=15 },
+  { id:'octopus', name:'Bläckfisken',      req:()=>getLevel()>=19 },
+  { id:'wolf',    name:'Vargen',           req:()=>getLevel()>=22 },
+  { id:'leopard', name:'Leoparden',        req:()=>getLevel()>=26 },
+  { id:'rooster', name:'Tuppen',           req:()=>getLevel()>=31 },
+  { id:'raccoon3',name:'Guld-Tvättbjörn',  req:()=>getLevel()>=43 },
 ];
 const FRAMES = [
   { id:'simple-black',   name:'Enkel',          req:null },
-  { id:'thin-silver',    name:'Silver',          req:()=>getLevel()>=3 },
-  { id:'glow-blue',      name:'Blå Glow',        req:()=>getLevel()>=6 },
-  { id:'glow-purple',    name:'Lila Glow',        req:()=>getLevel()>=10 },
-  { id:'neon-bluepurple', name:'Neon',            req:()=>getLevel()>=14 },
-  { id:'fire-orange',    name:'Eld',              req:()=>getLevel()>=18 },
-  { id:'elegant-gold',   name:'Guld',             req:()=>getLevel()>=22 },
-  { id:'diamond-silver', name:'Diamant',          req:()=>getLevel()>=26 },
+  { id:'thin-silver',    name:'Silver',          req:()=>getLevel()>=5 },
+  { id:'glow-blue',      name:'Blå Glow',        req:()=>getLevel()>=9 },
+  { id:'glow-purple',    name:'Lila Glow',        req:()=>getLevel()>=13 },
+  { id:'neon-bluepurple', name:'Neon',            req:()=>getLevel()>=18 },
+  { id:'fire-orange',    name:'Eld',              req:()=>getLevel()>=25 },
+  { id:'elegant-gold',   name:'Guld',             req:()=>getLevel()>=32 },
+  { id:'diamond-silver', name:'Diamant',          req:()=>getLevel()>=37 },
 ];
 const ITEMS = [
   { id:'',            name:'Ingen',         req:null },
   { id:'backpack',    name:'Ryggsäck',      req:null },
   { id:'ruler',       name:'Linjal',        req:null },
-  { id:'banana',      name:'Banan',         req:()=>getLevel()>=2 },
-  { id:'waterbottle', name:'Vattenflaska',  req:()=>getLevel()>=4 },
+  { id:'banana',      name:'Banan',         req:()=>getLevel()>=6 },
+  { id:'waterbottle', name:'Vattenflaska',  req:()=>getLevel()>=10 },
+  { id:'chocolate',   name:'Choklad',       req:()=>getLevel()>=15 },
   { id:'calculator',  name:'Miniräknare',   req:()=>chapters.some(ch=>['E','C','A'].some(s=>isQuizPassed(ch.id,s))) },
   { id:'checklist',   name:'Checklista',    req:()=>getTotalProgress().done>=10 },
-  { id:'chocolate',   name:'Choklad',       req:()=>getLevel()>=7 },
   { id:'pizza',       name:'Pizza',         req:()=>getStreak()>=7 },
-  { id:'energydrink', name:'Energidryck',   req:()=>getLevel()>=11 },
+  { id:'energydrink', name:'Energidryck',   req:()=>getLevel()>=22 },
   { id:'phone',       name:'Mobil',         req:()=>'EDCBA'.includes(getGradeReadiness().grade) },
-  { id:'stopwatch',   name:'Stoppur',       req:()=>getLevel()>=15 },
+  { id:'stopwatch',   name:'Stoppur',       req:()=>getLevel()>=30 },
   { id:'socks',       name:'Strumpor',      req:()=>getStreak()>=14 },
   { id:'handsanitizer',name:'Handsprit',    req:()=>{const t=getTotalProgress();return t.eT>0&&t.eD===t.eT;} },
 ];
@@ -2204,7 +2204,7 @@ function closeVideo(){
 }
 
 function openVideoById(vid){
-  window.open('https://www.youtube.com/watch?v='+vid, '_blank');
+  openVideo(vid);
 }
 
 // --- STREAK MODAL ---
